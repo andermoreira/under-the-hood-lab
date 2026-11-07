@@ -54,6 +54,7 @@ uint64_t pmm_alloc(void) {
     for (uint64_t i = 1; i < cursor; ++i) {
         if (!bit_get(i)) {
             bit_set(i);
+            owned[i >> 3] |= (uint8_t)(1u << (i & 7));
             --free_frames;
             cursor = i + 1;
             return i * PAGE_SIZE;
