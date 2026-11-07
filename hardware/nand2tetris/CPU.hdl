@@ -1,0 +1,40 @@
+// Hack CPU. instruction[15]=0: A-instruction; 1: C-instruction.
+// addressM and pc expose 15-bit addresses. All state updates on clock.
+CHIP CPU {
+ IN inM[16], instruction[16], reset;
+ OUT outM[16], writeM, addressM[15], pc[15];
+ PARTS:
+ Not(in=instruction[15], out=isA);
+ Not(in=isA, out=isC);
+
+ // A receives instruction for @value, or ALU output for dest=A.
+ And(a=isC, b=instruction[5], out=destA);
+ Or(a=isA, b=destA, out=loadA);
+ Mux16(a=instruction, b=aluOut, sel=isC, out=aIn);
+ Register(in=aIn, load=loadA, out=aValue, out[0..14]=addressM);
+
+ // D receives ALU output only when dest=D on a C-instruction.
+ And(a=isC, b=instruction[4], out=loadD);
+ Register(in=aluOut, load=loadD, out=dValue);
+
+ // a bit selects A or memory input as the second ALU operand.
+ Mux16(a=aValue, b=inM, sel=instruction[12], out=yValue);
+ ALU(x=dValue, y=yValue,
+     zx=instruction[11], nx=instruction[10],
+     zy=instruction[9], ny=instruction[8],
+     f=instruction[7], no=instruction[6],
+     out=aluOut, zr=zero, ng=negative);
+ Or16(a=aluOut, b=false, out=outM);
+ And(a=isC, b=instruction[3], out=writeM);
+
+ // jump bits: j1=JGT, j2=JEQ, j3=JLT.
+ Or(a=zero, b=negative, out=notPositive);
+ Not(in=notPositive, out=positive);
+ And(a=instruction[0], b=positive, out=jumpGT);
+ And(a=instruction[1], b=zero, out=jumpEQ);
+ And(a=instruction[2], b=negative, out=jumpLT);
+ Or(a=jumpGT, b=jumpEQ, out=jumpGE);
+ Or(a=jumpGE, b=jumpLT, out=jumpCondition);
+ And(a=isC, b=jumpCondition, out=jump);
+ PC(in=aValue, load=jump, inc=true, reset=reset, out[0..14]=pc);
+}
