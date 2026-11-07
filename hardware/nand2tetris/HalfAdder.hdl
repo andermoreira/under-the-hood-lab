@@ -1,0 +1,12 @@
+// A02: two-bit addition; sum = XOR(a,b), carry = AND(a,b).
+CHIP HalfAdder {
+    IN a, b;
+    OUT sum, carry;
+
+    PARTS:
+    Nand(a=a, b=b, out=t);
+    Nand(a=a, b=t, out=u);
+    Nand(a=b, b=t, out=v);
+    Nand(a=u, b=v, out=sum);
+    Nand(a=t, b=t, out=carry);
+}
