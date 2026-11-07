@@ -19,6 +19,7 @@ trap 'rm -rf "$STAGE"' EXIT
 cp "$ROOT"/hardware/nand2tetris/*.hdl "$STAGE/"
 cp "$TESTS"/*.tst "$TESTS"/*.cmp "$STAGE/"
 cp "$ROOT/hardware/nand2tetris/programs"/*.hack "$STAGE/"
+python3 "$ROOT/tools/hack_assembler.py" "$ROOT/hardware/nand2tetris/programs/Sum1To5.asm" -o "$STAGE/Sum1To5.hack"
 # Simulator resolves HDL dependencies from the loaded chip directory.
 # Stage tests beside chips; keep original sources unchanged.
 for file in "$STAGE"/*.tst; do
@@ -32,7 +33,7 @@ p.write_text(s)
 PY
 done
 cd "$STAGE"
-for test in Not And Or Xor Mux HalfAdder FullAdder Add16 Inc16 ALU Bit Register RAM8 RAM64 PC CPU Computer; do
+for test in Not And Or Xor Mux HalfAdder FullAdder Add16 Inc16 ALU Bit Register RAM8 RAM64 PC CPU Computer ComputerSum; do
   echo "Running $test.tst"
   rm -f "$test.out"
   if [[ "$test" == "Computer" ]]; then sed -n '1,22p' "$test.tst"; fi

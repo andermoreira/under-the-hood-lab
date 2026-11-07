@@ -34,7 +34,7 @@ class IntegrationContractTests(unittest.TestCase):
 
     def test_official_runner_includes_integrated_computer(self):
         runner = (ROOT.parents[1] / "scripts/test-hdl.sh").read_text()
-        self.assertRegex(runner, r"for test in .*\bComputer\b; do")
+        self.assertIn(" CPU Computer ComputerSum; do", runner)
 
     def test_official_test_loads_rom_and_checks_memory(self):
         test = (ROOT / "tests/Computer.tst").read_text()
