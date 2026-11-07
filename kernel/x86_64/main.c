@@ -77,6 +77,11 @@ void kmain(void) {
     serial_write("B03_AFTER_TABLES\n");
     serial_write("KERNEL_READY\n");
     serial_write("B05_BEFORE_PMM_INIT\n");
+    if (!memmap_request.response) serial_write("B06_MEMMAP_RESPONSE_NULL\n");
+    else if (!memmap_request.response->entry_count) serial_write("B06_MEMMAP_EMPTY\n");
+    else serial_write("B06_MEMMAP_PRESENT\n");
+    if (!hhdm_request.response) serial_write("B06_HHDM_RESPONSE_NULL\n");
+    else serial_write("B06_HHDM_PRESENT\n");
     pmm_init(memmap_request.response);
     serial_write("B05_AFTER_PMM_INIT\n");
     if (pmm_free_count() < 2) { serial_write("B05_PMM_NO_MEMORY\n"); for (;;) __asm__ volatile ("cli; hlt"); }
