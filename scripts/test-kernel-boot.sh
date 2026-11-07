@@ -24,7 +24,7 @@ for _ in range(200):
         try:
             with socket.socket(socket.AF_UNIX) as sock:
                 sock.connect(sockpath)
-                sock.sendall(b"sendkey a\\n")
+                sock.sendall(b"sendkey a\n")
             break
         except OSError:
             pass
