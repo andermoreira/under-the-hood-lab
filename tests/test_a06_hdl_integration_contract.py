@@ -33,7 +33,7 @@ class IntegrationContractTests(unittest.TestCase):
                                     f"{name} depends on missing chip {part}")
 
     def test_official_runner_includes_integrated_computer(self):
-        runner = (ROOT.parents[0] / "scripts/test-hdl.sh").read_text()
+        runner = (ROOT.parents[1] / "scripts/test-hdl.sh").read_text()
         self.assertRegex(runner, r"for test in .*\bComputer\b; do")
 
     def test_official_test_loads_rom_and_checks_memory(self):
