@@ -63,3 +63,32 @@ jobs:
           name: b01-kernel-elf
           path: build/kernel/kernel.elf
           if-no-files-found: warn
+
+  kernel-boot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install QEMU and ISO tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 xorriso
+      - name: Fetch Limine binaries and protocol header
+        run: |
+          git clone --depth 1 --branch v9.x-binary https://github.com/limine-bootloader/limine.git /tmp/limine
+          curl --fail --location --retry 3 --output /tmp/limine.h https://raw.githubusercontent.com/limine-bootloader/limine-protocol/trunk/include/limine.h
+          test -x /tmp/limine/limine
+      - name: Boot QEMU and assert serial marker
+        env:
+          LIMINE_HEADER: /tmp/limine.h
+          LIMINE_DIR: /tmp/limine
+        run: make test-kernel-boot
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: b02-qemu-boot-evidence
+          path: |
+            build/kernel/serial.log
+            build/kernel/qemu.log
+            build/kernel/kernel.elf
+          if-no-files-found: warn
