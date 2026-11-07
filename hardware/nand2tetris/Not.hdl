@@ -1,0 +1,8 @@
+// A01: NOT built only from the built-in NAND gate.
+CHIP Not {
+    IN in;
+    OUT out;
+
+    PARTS:
+    Nand(a=in, b=in, out=out);
+}
