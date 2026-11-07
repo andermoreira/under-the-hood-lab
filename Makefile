@@ -1,4 +1,4 @@
-.PHONY: test verify test-hdl-offline test-hdl-official test-assembler
+.PHONY: test verify test-hdl-offline test-hdl-official test-assembler test-kernel-build
 test:
 	python3 -m unittest discover -s tests -v
 test-hdl-offline:
@@ -9,3 +9,6 @@ test-assembler:
 	python3 tools/hack_assembler.py hardware/nand2tetris/programs/FillRAM.asm -o /tmp/under-the-hood-FillRAM.hack
 	cmp /tmp/under-the-hood-FillRAM.hack hardware/nand2tetris/programs/FillRAM.hack
 verify: test test-hdl-offline test-assembler
+
+test-kernel-build:
+	bash scripts/build-kernel.sh
