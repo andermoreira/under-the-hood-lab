@@ -2,7 +2,7 @@
 load ../Computer.hdl,
 output-file Computer.out,
 compare-to Computer.cmp,
-output-list RAM[0]%D1.6.1 RAM[1]%D1.6.1;
+output-list RAM16K[0]%D1.6.1 RAM16K[1]%D1.6.1;
 
 ROM32K load ../programs/FillRAM.hack,
 set reset 1,
