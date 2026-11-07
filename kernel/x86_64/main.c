@@ -68,10 +68,14 @@ void kmain(void) {
     interrupts_init();
     serial_write("B03_AFTER_TABLES\n");
     serial_write("KERNEL_READY\n");
+    serial_write("B05_BEFORE_PMM_INIT\n");
     pmm_init(memmap_request.response);
+    serial_write("B05_AFTER_PMM_INIT\n");
     if (pmm_free_count() < 2) { serial_write("B05_PMM_NO_MEMORY\n"); for (;;) __asm__ volatile ("cli; hlt"); }
+    serial_write("B05_BEFORE_ALLOC\n");
     uint64_t first = pmm_alloc();
     uint64_t second = pmm_alloc();
+    serial_write("B05_AFTER_ALLOC\n");
     if (first == UINT64_MAX || second == UINT64_MAX || first == second || !pmm_free(first) || pmm_free(first)) {
         serial_write("B05_PMM_FAIL\n");
         for (;;) __asm__ volatile ("cli; hlt");
