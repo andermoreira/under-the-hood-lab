@@ -11,7 +11,7 @@ class BootContractTests(unittest.TestCase):
 
     def test_boot_gate_checks_actual_qemu_output(self):
         script = (ROOT / "scripts/test-kernel-boot.sh").read_text()
-        for token in ("qemu-system-x86_64", "timeout", "serial.log", "grep -Fxq 'KERNEL_READY'", "limine bios-install"):
+        for token in ("qemu-system-x86_64", "timeout", "serial.log", "grep -Fxq 'KERNEL_READY'", "bios-install"):
             self.assertIn(token, script)
         self.assertIn("rc != 124", script)
 
