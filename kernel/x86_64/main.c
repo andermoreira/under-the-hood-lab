@@ -9,6 +9,11 @@ __attribute__((used, section(".limine_requests")))
 static volatile uint64_t base_revision[] = LIMINE_BASE_REVISION(3);
 
 __attribute__((used, section(".limine_requests")))
+static volatile struct limine_hhdm_request hhdm_request = {
+    .id = LIMINE_HHDM_REQUEST_ID,
+    .revision = 0
+};
+
 static volatile struct limine_memmap_request memmap_request = {
     .id = LIMINE_MEMMAP_REQUEST_ID,
     .revision = 0
@@ -50,6 +55,9 @@ void serial_write(const char *text) {
     }
 }
 
+extern int heap_init(uint64_t offset);
+extern void *heap_alloc_page(void);
+extern int heap_free_page(void *pointer);
 extern void pmm_init(const struct limine_memmap_response *map);
 extern uint64_t pmm_alloc(void);
 extern int pmm_free(uint64_t physical);
@@ -81,6 +89,22 @@ void kmain(void) {
         for (;;) __asm__ volatile ("cli; hlt");
     }
     serial_write("B05_PMM_ALLOC_FREE_OK\n");
+    if (!hhdm_request.response || !heap_init(hhdm_request.response->offset)) {
+        serial_write("B06_HEAP_INIT_FAIL\n");
+        for (;;) __asm__ volatile ("cli; hlt");
+    }
+    uint8_t *page = heap_alloc_page();
+    if (!page) { serial_write("B06_HEAP_ALLOC_FAIL\n"); for (;;) __asm__ volatile ("cli; hlt"); }
+    for (size_t i = 0; i < 4096; ++i) {
+        if (page[i] != 0) { serial_write("B06_HEAP_ZERO_FAIL\n"); for (;;) __asm__ volatile ("cli; hlt"); }
+    }
+    page[0] = 0xa5;
+    page[4095] = 0x5a;
+    if (page[0] != 0xa5 || page[4095] != 0x5a || !heap_free_page(page) || heap_free_page(page)) {
+        serial_write("B06_HEAP_FAIL\n");
+        for (;;) __asm__ volatile ("cli; hlt");
+    }
+    serial_write("B06_HEAP_PAGE_OK\n");
     devices_init();
     while (timer_ticks() < 5) __asm__ volatile ("hlt");
     serial_write("B04_TIMER_TICKS_OK\n");
