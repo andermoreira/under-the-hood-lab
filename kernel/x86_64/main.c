@@ -9,6 +9,11 @@ __attribute__((used, section(".limine_requests")))
 static volatile uint64_t base_revision[] = LIMINE_BASE_REVISION(3);
 
 __attribute__((used, section(".limine_requests")))
+static volatile struct limine_memmap_request memmap_request = {
+    .id = LIMINE_MEMMAP_REQUEST_ID,
+    .revision = 0
+};
+
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST_ID,
     .revision = 0
@@ -45,6 +50,10 @@ void serial_write(const char *text) {
     }
 }
 
+extern void pmm_init(const struct limine_memmap_response *map);
+extern uint64_t pmm_alloc(void);
+extern int pmm_free(uint64_t physical);
+extern uint64_t pmm_free_count(void);
 extern void interrupts_init(void);
 extern void devices_init(void);
 extern uint64_t timer_ticks(void);
@@ -59,6 +68,15 @@ void kmain(void) {
     interrupts_init();
     serial_write("B03_AFTER_TABLES\n");
     serial_write("KERNEL_READY\n");
+    pmm_init(memmap_request.response);
+    if (pmm_free_count() < 2) { serial_write("B05_PMM_NO_MEMORY\n"); for (;;) __asm__ volatile ("cli; hlt"); }
+    uint64_t first = pmm_alloc();
+    uint64_t second = pmm_alloc();
+    if (first == UINT64_MAX || second == UINT64_MAX || first == second || !pmm_free(first) || pmm_free(first)) {
+        serial_write("B05_PMM_FAIL\n");
+        for (;;) __asm__ volatile ("cli; hlt");
+    }
+    serial_write("B05_PMM_ALLOC_FREE_OK\n");
     devices_init();
     while (timer_ticks() < 5) __asm__ volatile ("hlt");
     serial_write("B04_TIMER_TICKS_OK\n");
