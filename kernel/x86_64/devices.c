@@ -40,8 +40,37 @@ void irq_keyboard_handler(void) {
     }
     outb(0x20, 0x20);
 }
+/* Firmware does not guarantee PS/2 controller IRQ1 is enabled. */
+static int ps2_wait_input_clear(void) {
+    for (unsigned i = 0; i < 100000; ++i)
+        if (!(inb(0x64) & 0x02)) return 1;
+    return 0;
+}
+static int ps2_wait_output_full(void) {
+    for (unsigned i = 0; i < 100000; ++i)
+        if (inb(0x64) & 0x01) return 1;
+    return 0;
+}
+static void ps2_keyboard_init(void) {
+    if (!ps2_wait_input_clear()) return;
+    outb(0x64, 0xad);
+    if (!ps2_wait_input_clear()) return;
+    outb(0x64, 0x20);
+    if (!ps2_wait_output_full()) return;
+    uint8_t config = inb(0x60);
+    config |= 0x01;
+    config &= (uint8_t)~0x10;
+    if (!ps2_wait_input_clear()) return;
+    outb(0x64, 0x60);
+    if (!ps2_wait_input_clear()) return;
+    outb(0x60, config);
+    if (!ps2_wait_input_clear()) return;
+    outb(0x64, 0xae);
+    serial_write("B04_PS2_CONTROLLER_READY\n");
+}
 void devices_init(void) {
     /* PIT channel 0, mode 2, ~100 Hz (1193182 / 11932). */
+    ps2_keyboard_init();
     pic_remap();
     outb(0x43, 0x34);
     outb(0x40, (uint8_t)(11932 & 0xff));
