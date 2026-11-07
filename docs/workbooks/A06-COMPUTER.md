@@ -16,7 +16,7 @@ O programa `FillRAM.hack` deve executar `@2; D=A; @0; M=D; @5; 0;JMP`: ao fim de
 3. Em `Memory.hdl`, RAM16K responde a endereços 0–16383, Screen a 16384–24575, Keyboard a 24576.
 4. Preveja o que ocorre se o sinal `writeM` não chegar à memória.
 5. Rode `python3 -m unittest discover -s tests -v` para o modelo de referência.
-6. Com as ferramentas oficiais Nand2Tetris, carregue `Computer.hdl` e `FillRAM.hack` no HardwareSimulator; registre o resultado real antes de afirmar que o HDL funciona.
+6. Com as ferramentas oficiais Nand2Tetris, execute `bash scripts/test-hdl.sh`: o teste `Computer.tst` carrega `FillRAM.hack` na ROM32K, executa seis ciclos e compara RAM[0]=2 e RAM[1]=0. Registre o resultado real antes de afirmar que o HDL funciona.
 
 ## Refutação
 Desconecte `writeM` e tente executar o programa. O resultado esperado RAM[0]=2 deve deixar de ocorrer.
