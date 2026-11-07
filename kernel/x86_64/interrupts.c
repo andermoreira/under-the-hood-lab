@@ -15,7 +15,8 @@ struct __attribute__((packed)) idt_gate {
     uint32_t reserved;
 };
 
-static const uint64_t gdt[] __attribute__((aligned(16))) = {
+/* Segment loads may set the Accessed bit in GDT descriptors. Keep writable. */
+static uint64_t gdt[] __attribute__((aligned(16))) = {
     0,
     0x00009a000000ffffULL, /* Limine-compatible 16-bit code */
     0x000092000000ffffULL, /* Limine-compatible 16-bit data */
