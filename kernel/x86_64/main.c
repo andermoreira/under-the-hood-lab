@@ -135,6 +135,14 @@ void kmain(void) {
         serial_write("B06_PAGING_FAIL\n");
         for (;;) __asm__ volatile ("cli; hlt");
     }
+    for (unsigned cycle = 0; cycle < 16; ++cycle) {
+        if (!paging_map_test_page() || !paging_unmap_test_page() ||
+            pmm_free_count() != free_before_paging) {
+            serial_write("B06_PAGING_REUSE_FAIL\n");
+            for (;;) __asm__ volatile ("cli; hlt");
+        }
+    }
+    serial_write("B06_PAGING_REUSE_OK\n");
     serial_write("B06_PAGING_MAP_UNMAP_OK\n");
     devices_init();
     while (timer_ticks() < 5) __asm__ volatile ("hlt");
