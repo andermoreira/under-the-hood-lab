@@ -44,12 +44,9 @@ void interrupts_init(void) {
     serial_write("B03_GDT_BEFORE\n");
     __asm__ volatile ("cli; lgdt %0" : : "m"(gdtr) : "memory");
     serial_write("B03_GDT_LOADED\n");
+    /* Limine enters with a valid 64-bit CS. Reload data selectors first;
+       defer CS far transfer until the basic descriptor path is proven. */
     __asm__ volatile (
-        "pushq $0x08\n"
-        "leaq 1f(%%rip), %%rax\n"
-        "pushq %%rax\n"
-        "lretq\n"
-        "1:\n"
         "movw $0x10, %%ax\n"
         "movw %%ax, %%ds\n"
         "movw %%ax, %%es\n"
