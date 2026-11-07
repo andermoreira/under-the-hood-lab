@@ -22,12 +22,17 @@ cp -r "$ROOT/hardware/nand2tetris/programs" "$STAGE/programs"
 # Simulator resolves HDL dependencies from the loaded chip directory.
 # Stage tests beside chips; keep original sources unchanged.
 for file in "$STAGE"/*.tst; do
-  sed -i 's@load \\.\\./@load @g; s@ROM32K load \\.\\./programs/@ROM32K load programs/@g' "$file"
+  python3 - "$file" <<'PY'
+from pathlib import Path
+import sys
+p=Path(sys.argv[1]); s=p.read_text(); s=s.replace('load ../', 'load ').replace('ROM32K load ../programs/', 'ROM32K load programs/'); p.write_text(s)
+PY
 done
 cd "$STAGE"
 for test in Not And Or Xor Mux HalfAdder FullAdder Add16 Inc16 ALU Bit Register RAM8 RAM64 PC CPU Computer; do
   echo "Running $test.tst"
   rm -f "$test.out"
+  if [[ "$test" == "Not" ]]; then sed -n '1,8p' "$test.tst"; fi
   "$SIM" "$test.tst"
   if [[ ! -s "$test.out" ]]; then
     echo "FAIL: $test.out missing or empty" >&2
