@@ -48,19 +48,9 @@ void interrupts_init(void) {
     serial_write("B03_IDT_LOADED\n");
     __asm__ volatile ("lgdt %0" : : "m"(gdtr) : "memory");
     serial_write("B03_GDT_LOADED\n");
-    __asm__ volatile (
-        "pushq $0x08\n"
-        "leaq 1f(%%rip), %%rax\n"
-        "pushq %%rax\n"
-        "lretq\n"
-        "1:\n"
-        "movw $0x10, %%ax\n"
-        "movw %%ax, %%ds\n"
-        "movw %%ax, %%es\n"
-        "movw %%ax, %%ss\n"
-        : : : "rax", "memory"
-    );
-    serial_write("B03_SEGMENTS_RELOADED\n");
+    /* Diagnostic isolation: do not reload CS/DS/SS yet. The new GDT
+       is loaded; validate exception delivery independently first. */
+    serial_write("B03_SEGMENT_SWITCH_SKIPPED\n");
 }
 
 __attribute__((noreturn))
