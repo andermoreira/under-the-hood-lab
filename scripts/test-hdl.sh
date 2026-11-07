@@ -22,7 +22,7 @@ cp -r "$ROOT/hardware/nand2tetris/programs" "$STAGE/programs"
 # Simulator resolves HDL dependencies from the loaded chip directory.
 # Stage tests beside chips; keep original sources unchanged.
 for file in "$STAGE"/*.tst; do
-  sed -i 's@load \\../@load @g; s@ROM32K load \\../programs/@ROM32K load programs/@g' "$file"
+  sed -i 's@load \\.\\./@load @g; s@ROM32K load \\.\\./programs/@ROM32K load programs/@g' "$file"
 done
 cd "$STAGE"
 for test in Not And Or Xor Mux HalfAdder FullAdder Add16 Inc16 ALU Bit Register RAM8 RAM64 PC CPU Computer; do
