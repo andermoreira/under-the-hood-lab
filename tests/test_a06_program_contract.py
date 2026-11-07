@@ -19,4 +19,4 @@ class ProgramContractTests(unittest.TestCase):
         script = COMPUTER_TEST.read_text()
         self.assertIn("ROM32K load ../programs/FillRAM.hack", script)
         self.assertIn("repeat 6", script)
-        self.assertIn("RAM[0]", script)
+        self.assertIn("RAM16K[0]", script)
