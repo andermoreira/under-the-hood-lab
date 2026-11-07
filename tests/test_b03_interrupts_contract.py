@@ -19,4 +19,5 @@ class InterruptsContractTests(unittest.TestCase):
     def test_ci_runs_negative_exception_scenario(self):
         workflow = (ROOT / ".github/workflows/tests.yml").read_text()
         self.assertIn("B03_TRIGGER_UD2", workflow)
-        self.assertIn("EXCEPTION_UD_VECTOR_6", workflow)
+        self.assertIn("B03_EXPECT_UD2=1", workflow)
+        self.assertIn("EXCEPTION_UD_VECTOR_6", (ROOT / "scripts/test-kernel-boot.sh").read_text())
