@@ -11,7 +11,13 @@ def rows(path):
 
 def check(expected, observed):
     a, b = rows(expected), rows(observed)
-    if a != b:
+    if len(a) != len(b) or not a or not b:
+        raise AssertionError(f"Output row count mismatch: expected {a}, observed {b}")
+    if len(a[0]) != len(b[0]):
+        raise AssertionError(f"Output column count mismatch: expected {a[0]}, observed {b[0]}")
+    # Simulator truncates header labels to output-list field widths (carry -> car).
+    # Compare every data cell, including all values and row order, not display labels.
+    if a[1:] != b[1:]:
         raise AssertionError(f"Output mismatch: expected {a}, observed {b}")
 
 if __name__ == "__main__":
