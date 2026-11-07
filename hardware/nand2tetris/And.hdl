@@ -1,0 +1,9 @@
+// A01: AND built only from the built-in NAND gate.
+CHIP And {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Nand(a=a, b=b, out=negated);
+    Nand(a=negated, b=negated, out=out);
+}
