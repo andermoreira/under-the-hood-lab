@@ -39,6 +39,6 @@ class IntegrationContractTests(unittest.TestCase):
     def test_official_test_loads_rom_and_checks_memory(self):
         test = (ROOT / "tests/Computer.tst").read_text()
         self.assertIn("ROM32K load ../programs/FillRAM.hack", test)
-        self.assertIn("RAM[0]", test)
-        self.assertIn("RAM[1]", test)
+        self.assertIn("RAM16K[0]", test)
+        self.assertIn("RAM16K[1]", test)
         self.assertIn("repeat 6", test)
