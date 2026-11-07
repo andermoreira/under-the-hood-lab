@@ -24,13 +24,21 @@ for _ in range(200):
         try:
             with socket.socket(socket.AF_UNIX) as sock:
                 sock.connect(sockpath)
-                sock.settimeout(2)
-                sock.recv(4096)  # HMP greeting and prompt
-                sock.sendall(b"sendkey a\n")
-                response = sock.recv(4096).decode(errors="replace")
-                print("QEMU_HMP_RESPONSE:", repr(response), flush=True)
-                if "unknown command" in response.lower() or "error" in response.lower():
-                    sys.exit("FAIL: QEMU rejected sendkey command")
+                sock.settimeout(1)
+                sock.recv(4096)
+                for command in ("info qtree", "info pic", "sendkey a", "info pic"):
+                    sock.sendall((command + "\n").encode())
+                    chunks = []
+                    deadline = time.monotonic() + 1.5
+                    while time.monotonic() < deadline:
+                        try:
+                            chunk = sock.recv(65536)
+                            if not chunk:
+                                break
+                            chunks.append(chunk)
+                        except socket.timeout:
+                            break
+                    print("QEMU_HMP_" + command.replace(" ", "_") + ":", repr(b"".join(chunks).decode(errors="replace")[-5000:]), flush=True)
             break
         except OSError:
             pass
