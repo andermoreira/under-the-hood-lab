@@ -8,6 +8,13 @@ Laboratório educacional do bit ao sistema operacional.
 
 As trilhas são independentes: o kernel x86-64 não roda na CPU Hack.
 
+## Navegação pedagógica
+
+- [Jornada guiada](docs/journey/README.md)
+- [Glossário com analogias e experimentos](docs/GLOSSARIO.md)
+- [Guia para iniciantes](docs/INICIANTE.md)
+- [Workbook A01](docs/workbooks/A01.md)
+
 ## Início rápido
 
 ```sh
