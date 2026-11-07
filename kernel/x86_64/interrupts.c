@@ -1,0 +1,65 @@
+#include <stdint.h>
+#include <stddef.h>
+
+struct __attribute__((packed)) descriptor_ptr {
+    uint16_t limit;
+    uint64_t base;
+};
+struct __attribute__((packed)) idt_gate {
+    uint16_t offset_low;
+    uint16_t selector;
+    uint8_t ist;
+    uint8_t attributes;
+    uint16_t offset_mid;
+    uint32_t offset_high;
+    uint32_t reserved;
+};
+
+static const uint64_t gdt[] __attribute__((aligned(16))) = {
+    0,
+    0x00af9a000000ffffULL, /* ring-0 64-bit code */
+    0x00af92000000ffffULL  /* ring-0 data */
+};
+static struct idt_gate idt[256] __attribute__((aligned(16)));
+
+extern void isr_invalid_opcode(void);
+extern void serial_write(const char *message);
+
+static void set_gate(unsigned int vector, void (*handler)(void)) {
+    uintptr_t address = (uintptr_t)handler;
+    idt[vector] = (struct idt_gate) {
+        .offset_low = (uint16_t)address,
+        .selector = 0x08,
+        .ist = 0,
+        .attributes = 0x8e,
+        .offset_mid = (uint16_t)(address >> 16),
+        .offset_high = (uint32_t)(address >> 32),
+        .reserved = 0
+    };
+}
+
+void interrupts_init(void) {
+    struct descriptor_ptr gdtr = {sizeof(gdt) - 1, (uintptr_t)gdt};
+    struct descriptor_ptr idtr = {sizeof(idt) - 1, (uintptr_t)idt};
+    __asm__ volatile ("cli; lgdt %0" : : "m"(gdtr) : "memory");
+    __asm__ volatile (
+        "pushq $0x08\n"
+        "leaq 1f(%%rip), %%rax\n"
+        "pushq %%rax\n"
+        "lretq\n"
+        "1:\n"
+        "movw $0x10, %%ax\n"
+        "movw %%ax, %%ds\n"
+        "movw %%ax, %%es\n"
+        "movw %%ax, %%ss\n"
+        : : : "rax", "memory"
+    );
+    set_gate(6, isr_invalid_opcode);
+    __asm__ volatile ("lidt %0" : : "m"(idtr) : "memory");
+}
+
+__attribute__((noreturn))
+void exception_invalid_opcode(void) {
+    serial_write("EXCEPTION_UD_VECTOR_6\n");
+    for (;;) __asm__ volatile ("cli; hlt");
+}
