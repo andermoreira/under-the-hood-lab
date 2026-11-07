@@ -51,6 +51,6 @@ void kmain(void) {
         for (;;) __asm__ volatile ("cli; hlt");
     }
     serial_init();
-    serial_write("KERNEL_READY\\n");
+    serial_write("KERNEL_READY\n");
     for (;;) __asm__ volatile ("hlt");
 }
