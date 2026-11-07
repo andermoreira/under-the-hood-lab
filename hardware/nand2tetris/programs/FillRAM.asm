@@ -3,6 +3,6 @@
 D=A
 @0
 M=D
-(HALT)
 @HALT
+(HALT)
 0;JMP
