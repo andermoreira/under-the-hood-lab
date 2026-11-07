@@ -76,6 +76,7 @@ jobs:
       - name: Fetch Limine binaries and protocol header
         run: |
           git clone --depth 1 --branch v9.x-binary https://github.com/limine-bootloader/limine.git /tmp/limine
+          make -C /tmp/limine
           curl --fail --location --retry 3 --output /tmp/limine.h https://raw.githubusercontent.com/limine-bootloader/limine-protocol/trunk/include/limine.h
           test -x /tmp/limine/limine
       - name: Boot QEMU and assert serial marker
