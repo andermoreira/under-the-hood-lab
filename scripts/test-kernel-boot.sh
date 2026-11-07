@@ -79,6 +79,11 @@ PY
   fi
   exit 1
 fi
+if ! grep -Fxq 'B06_PAGING_ROLLBACK_OK' "$OUT/serial.log"; then
+  echo 'FAIL: paging rollback fault-injection checks not observed' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
 if ! grep -Fxq 'B06_PAGING_MAP_UNMAP_OK' "$OUT/serial.log"; then
   echo 'FAIL: real paging map/unmap smoke test not observed' >&2
   cat "$OUT/serial.log" >&2
