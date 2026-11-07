@@ -18,14 +18,14 @@ STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 cp "$ROOT"/hardware/nand2tetris/*.hdl "$STAGE/"
 cp "$TESTS"/*.tst "$TESTS"/*.cmp "$STAGE/"
-cp -r "$ROOT/hardware/nand2tetris/programs" "$STAGE/programs"
+cp "$ROOT/hardware/nand2tetris/programs"/*.hack "$STAGE/"
 # Simulator resolves HDL dependencies from the loaded chip directory.
 # Stage tests beside chips; keep original sources unchanged.
 for file in "$STAGE"/*.tst; do
   python3 - "$file" <<'PY'
 from pathlib import Path
 import sys
-p=Path(sys.argv[1]); s=p.read_text(); s=s.replace('load ../', 'load ').replace('ROM32K load ../programs/', 'ROM32K load programs/')
+p=Path(sys.argv[1]); s=p.read_text(); s=s.replace('load ../', 'load ').replace('ROM32K load ../programs/', 'ROM32K load ')
 # Official comparator requires exact column formatting; use our semantic comparator instead.
 s=chr(10).join(line for line in s.splitlines() if not line.lstrip().startswith('compare-to ')) + chr(10)
 p.write_text(s)
@@ -35,7 +35,7 @@ cd "$STAGE"
 for test in Not And Or Xor Mux HalfAdder FullAdder Add16 Inc16 ALU Bit Register RAM8 RAM64 PC CPU Computer; do
   echo "Running $test.tst"
   rm -f "$test.out"
-  if [[ "$test" == "Not" ]]; then sed -n '1,8p' "$test.tst"; fi
+  if [[ "$test" == "Computer" ]]; then sed -n '1,22p' "$test.tst"; fi
   if ! "$SIM" "$test.tst"; then
     echo "FAIL: simulator rejected $test.tst" >&2
     [[ ! -f "$test.out" ]] || cat "$test.out"
