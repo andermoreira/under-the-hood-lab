@@ -27,7 +27,7 @@ from pathlib import Path
 import sys
 p=Path(sys.argv[1]); s=p.read_text(); s=s.replace('load ../', 'load ').replace('ROM32K load ../programs/', 'ROM32K load programs/')
 # Official comparator requires exact column formatting; use our semantic comparator instead.
-s='\\n'.join(line for line in s.split('\\n') if not line.lstrip().startswith('compare-to '))
+s=chr(10).join(line for line in s.splitlines() if not line.lstrip().startswith('compare-to ')) + chr(10)
 p.write_text(s)
 PY
 done
