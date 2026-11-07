@@ -18,7 +18,7 @@ fi
 "$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-stack-check -fno-pic -fno-pie -m64 -march=x86-64 -mno-red-zone -mcmodel=kernel -fno-asynchronous-unwind-tables ${KERNEL_CFLAGS:-} -I"$OUT" -c "$ROOT/kernel/x86_64/main.c" -o "$OUT/main.o"
 "$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -fno-asynchronous-unwind-tables -c "$ROOT/kernel/x86_64/interrupts.c" -o "$OUT/interrupts.o"
 "$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -c "$ROOT/kernel/x86_64/devices.c" -o "$OUT/devices.o"
-"$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -mgeneral-regs-only -c "$ROOT/kernel/x86_64/pmm.c" -I"$OUT" -o "$OUT/pmm.o"
+"$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -march=x86-64 -mtune=generic -mno-bmi2 -mgeneral-regs-only -c "$ROOT/kernel/x86_64/pmm.c" -I"$OUT" -o "$OUT/pmm.o"
 "$CC" -m64 -c "$ROOT/kernel/x86_64/interrupts.S" -o "$OUT/interrupts_asm.o"
 "$LD" -nostdlib -static -z max-page-size=0x1000 -T "$ROOT/kernel/x86_64/linker.ld" "$OUT/main.o" "$OUT/interrupts.o" "$OUT/devices.o" "$OUT/pmm.o" "$OUT/interrupts_asm.o" -o "$OUT/kernel.elf"
 "$READELF" -h "$OUT/kernel.elf" | grep -q 'Machine:.*Advanced Micro Devices X86-64'
@@ -26,6 +26,10 @@ fi
 "$READELF" -h "$OUT/kernel.elf" | grep -q 'Entry point address:'
 if "$READELF" -d "$OUT/kernel.elf" 2>/dev/null | grep -q NEEDED; then
   echo "FAIL: kernel has dynamic dependencies" >&2
+  exit 1
+fi
+if objdump -d "$OUT/kernel.elf" | grep -Eiq "\\b(shlx|shrx|sarx|rorx|mulx|bzhi|pdep|pext)\\b"; then
+  echo "FAIL: kernel contains BMI2 instructions unsupported by baseline QEMU CPU" >&2
   exit 1
 fi
 if [[ "${B05_DISASSEMBLE:-0}" == "1" ]]; then
