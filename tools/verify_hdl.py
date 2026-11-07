@@ -68,7 +68,7 @@ def verify(name, chip_dir=CHIPS, cmp_dir=TESTS):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("chips", nargs="*", default=["Not", "And", "Or", "Xor"])
+    parser.add_argument("chips", nargs="*", default=["Not", "And", "Or", "Xor", "Mux"])
     args = parser.parse_args()
     for chip in args.chips:
         n = verify(chip)
