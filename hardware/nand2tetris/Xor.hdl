@@ -1,0 +1,11 @@
+// A01: XOR using four NAND gates.
+CHIP Xor {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Nand(a=a, b=b, out=t);
+    Nand(a=a, b=t, out=u);
+    Nand(a=b, b=t, out=v);
+    Nand(a=u, b=v, out=out);
+}
