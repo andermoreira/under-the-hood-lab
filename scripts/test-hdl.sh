@@ -25,7 +25,7 @@ for file in "$STAGE"/*.tst; do
   python3 - "$file" <<'PY'
 from pathlib import Path
 import sys
-p=Path(sys.argv[1]); s=p.read_text(); s=s.replace('load ../', 'load ').replace('ROM32K load ../programs/', 'ROM32K load ')
+p=Path(sys.argv[1]); s=p.read_text(); s=s.replace('ROM32K load ../programs/', 'ROM32K load ').replace('load ../', 'load ')
 # Official comparator requires exact column formatting; use our semantic comparator instead.
 s=chr(10).join(line for line in s.splitlines() if not line.lstrip().startswith('compare-to ')) + chr(10)
 p.write_text(s)
