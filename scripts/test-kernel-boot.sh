@@ -15,7 +15,7 @@ cp "$LIMINE_DIR/limine-bios.sys" "$LIMINE_DIR/limine-bios-cd.bin" "$LIMINE_DIR/l
 xorriso -as mkisofs -R -r -J -b boot/limine/limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot boot/limine/limine-uefi-cd.bin -efi-boot-part --efi-boot-image -o "$OUT/kernel.iso" "$OUT/iso_root" >/dev/null 2>&1
 "$LIMINE_DIR/limine" bios-install "$OUT/kernel.iso"
 set +e
-timeout --signal=TERM --kill-after=3s 20s qemu-system-x86_64 -machine q35 -m 128M -cdrom "$OUT/kernel.iso" -boot d -display none -monitor none -serial "file:$OUT/serial.log" -no-reboot -no-shutdown >"$OUT/qemu.log" 2>&1
+timeout --signal=TERM --kill-after=3s 20s qemu-system-x86_64 -machine q35 -m 128M -cdrom "$OUT/kernel.iso" -boot d -display none -monitor none -serial "file:$OUT/serial.log" -no-reboot -no-shutdown -d int,cpu_reset -D "$OUT/qemu-debug.log" >"$OUT/qemu.log" 2>&1
 rc=$?
 set -e
 if [[ "$rc" != 124 && "$rc" != 0 ]]; then
@@ -26,6 +26,7 @@ fi
 if ! grep -Fxq 'KERNEL_READY' "$OUT/serial.log"; then
   echo "FAIL: KERNEL_READY not observed on serial console" >&2
   cat "$OUT/serial.log" "$OUT/qemu.log" >&2
+  grep -E "v=0d|v=08|Triple fault|check_exception" "$OUT/qemu-debug.log" | tail -25 >&2 || true
   exit 1
 fi
 if [[ "${B03_EXPECT_UD2:-0}" == "1" ]]; then
