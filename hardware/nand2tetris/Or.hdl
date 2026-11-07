@@ -1,0 +1,10 @@
+// A01: OR derived from NAND using De Morgan's law.
+CHIP Or {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+    Nand(a=a, b=a, out=na);
+    Nand(a=b, b=b, out=nb);
+    Nand(a=na, b=nb, out=out);
+}
