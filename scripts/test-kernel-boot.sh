@@ -24,7 +24,13 @@ for _ in range(200):
         try:
             with socket.socket(socket.AF_UNIX) as sock:
                 sock.connect(sockpath)
+                sock.settimeout(2)
+                sock.recv(4096)  # HMP greeting and prompt
                 sock.sendall(b"sendkey a\n")
+                response = sock.recv(4096).decode(errors="replace")
+                print("QEMU_HMP_RESPONSE:", repr(response), flush=True)
+                if "unknown command" in response.lower() or "error" in response.lower():
+                    sys.exit("FAIL: QEMU rejected sendkey command")
             break
         except OSError:
             pass
@@ -72,6 +78,10 @@ if ! grep -Fxq 'B04_TIMER_TICKS_OK' "$OUT/serial.log"; then
 fi
 if [[ "${B04_EXPECT_KEYBOARD:-0}" == "1" ]] && ! grep -Fxq "B04_KEYBOARD_IRQ" "$OUT/serial.log"; then
   echo "FAIL: injected PS/2 key did not trigger IRQ1" >&2
+  echo "=== Serial evidence ===" >&2
+  cat "$OUT/serial.log" >&2
+  echo "=== QEMU keyboard IRQ trace ===" >&2
+  grep -E "Servicing hardware INT=0x21|v=21|Triple fault|check_exception" "$OUT/qemu-debug.log" | tail -30 >&2 || true
   exit 1
 fi
 if [[ "${B03_EXPECT_UD2:-0}" == "1" ]]; then
