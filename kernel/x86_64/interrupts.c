@@ -18,7 +18,7 @@ struct __attribute__((packed)) idt_gate {
 static const uint64_t gdt[] __attribute__((aligned(16))) = {
     0,
     0x00af9a000000ffffULL, /* ring-0 64-bit code */
-    0x00af92000000ffffULL  /* ring-0 data */
+    0x00cf92000000ffffULL  /* ring-0 data */
 };
 static struct idt_gate idt[256] __attribute__((aligned(16)));
 
