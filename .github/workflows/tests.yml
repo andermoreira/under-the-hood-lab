@@ -27,6 +27,10 @@ jobs:
           git clone --depth 1 https://github.com/tcarreira/nand2tetris.git /tmp/nand2tetris
           test -f /tmp/nand2tetris/tools/HardwareSimulator.sh
           chmod +x /tmp/nand2tetris/tools/HardwareSimulator.sh
+      - name: Simulator baseline self-test
+        run: |
+          cd /tmp/nand2tetris/projects/01
+          /tmp/nand2tetris/tools/HardwareSimulator.sh Not.tst
       - name: Execute HDL suite
         env:
           N2T_HOME: /tmp/nand2tetris
