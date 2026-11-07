@@ -13,5 +13,6 @@ CHIP Memory {
  Screen(in=in, load=screenLoad, address=address[0..12], out=screenOut);
  Keyboard(out=keyboardOut);
  Mux16(a=ramOut, b=screenOut, sel=address[14], out=lowerOut);
- Mux16(a=lowerOut, b=keyboardOut, sel=address[13], out=out);
+ And(a=address[14], b=address[13], out=keyboardSelect);
+ Mux16(a=lowerOut, b=keyboardOut, sel=keyboardSelect, out=out);
 }
