@@ -44,6 +44,11 @@ PY
   fi
   exit 1
 fi
+if ! grep -Fxq 'B04_TIMER_TICKS_OK' "$OUT/serial.log"; then
+  echo 'FAIL: five PIT timer interrupts not observed' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
 if [[ "${B03_EXPECT_UD2:-0}" == "1" ]]; then
   grep -Fxq 'EXCEPTION_UD_VECTOR_6' "$OUT/serial.log" || { echo 'FAIL: expected #UD missing' >&2; exit 1; }
   python3 - "$OUT/serial.log" <<'PY'
