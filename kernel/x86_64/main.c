@@ -114,7 +114,10 @@ void kmain(void) {
         for (;;) __asm__ volatile ("cli; hlt");
     }
     serial_write("B06_HEAP_PAGE_OK\n");
-    if (!paging_init(hhdm_request.response->offset) || !paging_map_test_page() || !paging_unmap_test_page()) {
+    uint64_t free_before_paging = pmm_free_count();
+    if (!paging_init(hhdm_request.response->offset) || !paging_map_test_page() ||
+        paging_map_test_page() || !paging_unmap_test_page() || paging_unmap_test_page() ||
+        pmm_free_count() > free_before_paging) {
         serial_write("B06_PAGING_FAIL\n");
         for (;;) __asm__ volatile ("cli; hlt");
     }
