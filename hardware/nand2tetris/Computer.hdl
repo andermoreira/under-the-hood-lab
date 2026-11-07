@@ -1,0 +1,12 @@
+// Hack computer: CPU + ROM32K + memory-mapped RAM/screen/keyboard.
+// Platform-provided ROM32K is initialized by HardwareSimulator test scripts.
+CHIP Computer {
+ IN reset;
+ PARTS:
+ ROM32K(address=pc, out=instruction);
+ CPU(inM=memoryValue, instruction=instruction, reset=reset,
+     outM=memoryWriteValue, writeM=memoryWriteEnable,
+     addressM=memoryAddress, pc=pc);
+ Memory(in=memoryWriteValue, load=memoryWriteEnable,
+        address=memoryAddress, out=memoryValue);
+}

@@ -1,0 +1,18 @@
+// Hack memory map: RAM [0..16383], Screen [16384..24575], Keyboard [24576].
+// RAM16K, Screen and Keyboard are Nand2Tetris platform-provided chips.
+CHIP Memory {
+ IN in[16], load, address[15];
+ OUT out[16];
+ PARTS:
+ Not(in=address[14], out=not14);
+ And(a=not14, b=load, out=ramLoad);
+ And(a=address[14], b=load, out=upperLoad);
+ Not(in=address[13], out=not13);
+ And(a=upperLoad, b=not13, out=screenLoad);
+ RAM16K(in=in, load=ramLoad, address=address[0..13], out=ramOut);
+ Screen(in=in, load=screenLoad, address=address[0..12], out=screenOut);
+ Keyboard(out=keyboardOut);
+ Mux16(a=ramOut, b=screenOut, sel=address[14], out=lowerOut);
+ And(a=address[14], b=address[13], out=keyboardSelect);
+ Mux16(a=lowerOut, b=keyboardOut, sel=keyboardSelect, out=out);
+}
