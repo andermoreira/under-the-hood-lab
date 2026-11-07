@@ -57,6 +57,7 @@ void serial_write(const char *text) {
 }
 
 extern int paging_init(uint64_t offset);
+extern void paging_set_allocation_budget(int budget);
 extern int paging_map_test_page(void);
 extern int paging_unmap_test_page(void);
 extern int heap_init(uint64_t offset);
@@ -115,7 +116,20 @@ void kmain(void) {
     }
     serial_write("B06_HEAP_PAGE_OK\n");
     uint64_t free_before_paging = pmm_free_count();
-    if (!paging_init(hhdm_request.response->offset) || !paging_map_test_page() ||
+    if (!paging_init(hhdm_request.response->offset)) {
+        serial_write("B06_PAGING_INIT_FAIL\n");
+        for (;;) __asm__ volatile ("cli; hlt");
+    }
+    for (int budget = 0; budget < 4; ++budget) {
+        paging_set_allocation_budget(budget);
+        if (paging_map_test_page() || pmm_free_count() != free_before_paging) {
+            serial_write("B06_PAGING_ROLLBACK_FAIL\n");
+            for (;;) __asm__ volatile ("cli; hlt");
+        }
+    }
+    paging_set_allocation_budget(-1);
+    serial_write("B06_PAGING_ROLLBACK_OK\n");
+    if (!paging_map_test_page() ||
         paging_map_test_page() || !paging_unmap_test_page() || paging_unmap_test_page() ||
         pmm_free_count() > free_before_paging) {
         serial_write("B06_PAGING_FAIL\n");
