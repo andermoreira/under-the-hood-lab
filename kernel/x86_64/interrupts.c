@@ -41,12 +41,19 @@ static void set_gate(unsigned int vector, void (*handler)(void)) {
 void interrupts_init(void) {
     struct descriptor_ptr gdtr = {sizeof(gdt) - 1, (uintptr_t)gdt};
     struct descriptor_ptr idtr = {sizeof(idt) - 1, (uintptr_t)idt};
-    serial_write("B03_GDT_BEFORE\n");
-    __asm__ volatile ("cli; lgdt %0" : : "m"(gdtr) : "memory");
+    /* Install the exception table before changing active segments, so a
+       fault during the transition is not automatically a triple fault. */
+    set_gate(6, isr_invalid_opcode);
+    __asm__ volatile ("cli; lidt %0" : : "m"(idtr) : "memory");
+    serial_write("B03_IDT_LOADED\n");
+    __asm__ volatile ("lgdt %0" : : "m"(gdtr) : "memory");
     serial_write("B03_GDT_LOADED\n");
-    /* Limine enters with a valid 64-bit CS. Reload data selectors first;
-       defer CS far transfer until the basic descriptor path is proven. */
     __asm__ volatile (
+        "pushq $0x08\n"
+        "leaq 1f(%%rip), %%rax\n"
+        "pushq %%rax\n"
+        "lretq\n"
+        "1:\n"
         "movw $0x10, %%ax\n"
         "movw %%ax, %%ds\n"
         "movw %%ax, %%es\n"
@@ -54,9 +61,6 @@ void interrupts_init(void) {
         : : : "rax", "memory"
     );
     serial_write("B03_SEGMENTS_RELOADED\n");
-    set_gate(6, isr_invalid_opcode);
-    __asm__ volatile ("lidt %0" : : "m"(idtr) : "memory");
-    serial_write("B03_IDT_LOADED\n");
 }
 
 __attribute__((noreturn))
