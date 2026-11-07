@@ -53,7 +53,9 @@ void kmain(void) {
         for (;;) __asm__ volatile ("cli; hlt");
     }
     serial_init();
+    serial_write("B03_BEFORE_TABLES\n");
     interrupts_init();
+    serial_write("B03_AFTER_TABLES\n");
     serial_write("KERNEL_READY\n");
 #ifdef B03_TRIGGER_UD2
     __asm__ volatile ("ud2");
