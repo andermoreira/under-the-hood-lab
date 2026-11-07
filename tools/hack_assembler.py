@@ -25,7 +25,9 @@ def assemble(source: str) -> str:
     symbols = dict(PREDEFINED)
     rom = 0
     for number, raw in enumerate(source.splitlines(), 1):
-        line = re.sub(r"\s+", "", raw.split("//", 1)[0])
+        line = raw.split("//", 1)[0].strip()
+        if re.search(r"\s", line):
+            raise AssemblyError(f"line {number}: whitespace inside instruction")
         if not line:
             continue
         if line.startswith("("):
