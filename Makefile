@@ -1,4 +1,4 @@
-.PHONY: test verify test-hdl-offline test-hdl-official test-assembler test-kernel-build
+.PHONY: test verify test-hdl-offline test-hdl-official test-assembler test-kernel-build test-kernel-boot
 test:
 	python3 -m unittest discover -s tests -v
 test-hdl-offline:
@@ -12,3 +12,6 @@ verify: test test-hdl-offline test-assembler
 
 test-kernel-build:
 	bash scripts/build-kernel.sh
+
+test-kernel-boot: test-kernel-build
+	bash scripts/test-kernel-boot.sh
