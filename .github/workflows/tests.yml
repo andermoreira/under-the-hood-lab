@@ -85,6 +85,7 @@ jobs:
           LIMINE_DIR: /tmp/limine
         run: |
           make test-kernel-boot
+          B04_EXPECT_KEYBOARD=1 bash scripts/test-kernel-boot.sh
           KERNEL_OUT="$PWD/build/kernel-ud2" KERNEL_CFLAGS="-DB03_TRIGGER_UD2" bash scripts/build-kernel.sh
           KERNEL_OUT="$PWD/build/kernel-ud2" B03_EXPECT_UD2=1 bash scripts/test-kernel-boot.sh
       - uses: actions/upload-artifact@v4

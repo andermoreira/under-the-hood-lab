@@ -28,6 +28,10 @@ static uint64_t gdt[] __attribute__((aligned(16))) = {
 static struct idt_gate idt[256] __attribute__((aligned(16)));
 
 extern void isr_invalid_opcode(void);
+extern void isr_timer(void);
+extern void isr_keyboard(void);
+extern void irq_timer_handler(void);
+extern void irq_keyboard_handler(void);
 extern void serial_write(const char *message);
 
 static void set_gate(unsigned int vector, void (*handler)(void)) {
@@ -49,6 +53,8 @@ void interrupts_init(void) {
     /* Install the exception table before changing active segments, so a
        fault during the transition is not automatically a triple fault. */
     set_gate(6, isr_invalid_opcode);
+    set_gate(32, isr_timer);
+    set_gate(33, isr_keyboard);
     __asm__ volatile ("cli; lidt %0" : : "m"(idtr) : "memory");
     serial_write("B03_IDT_LOADED\n");
     __asm__ volatile ("lgdt %0" : : "m"(gdtr) : "memory");

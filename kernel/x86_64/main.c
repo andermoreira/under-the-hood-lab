@@ -46,6 +46,8 @@ void serial_write(const char *text) {
 }
 
 extern void interrupts_init(void);
+extern void devices_init(void);
+extern uint64_t timer_ticks(void);
 
 __attribute__((noreturn))
 void kmain(void) {
@@ -57,6 +59,9 @@ void kmain(void) {
     interrupts_init();
     serial_write("B03_AFTER_TABLES\n");
     serial_write("KERNEL_READY\n");
+    devices_init();
+    while (timer_ticks() < 5) __asm__ volatile ("hlt");
+    serial_write("B04_TIMER_TICKS_OK\n");
 #ifdef B03_TRIGGER_UD2
     __asm__ volatile ("ud2");
 #endif

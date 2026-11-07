@@ -14,10 +14,45 @@ cp "$ROOT/kernel/x86_64/limine.conf" "$OUT/iso_root/boot/limine/limine.conf"
 cp "$LIMINE_DIR/limine-bios.sys" "$LIMINE_DIR/limine-bios-cd.bin" "$LIMINE_DIR/limine-uefi-cd.bin" "$OUT/iso_root/boot/limine/"
 xorriso -as mkisofs -R -r -J -b boot/limine/limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot boot/limine/limine-uefi-cd.bin -efi-boot-part --efi-boot-image -o "$OUT/kernel.iso" "$OUT/iso_root" >/dev/null 2>&1
 "$LIMINE_DIR/limine" bios-install "$OUT/kernel.iso"
+rm -f "$OUT/qemu-monitor.sock"
+if [[ "${B04_EXPECT_KEYBOARD:-0}" == "1" ]]; then
+  python3 - "$OUT/qemu-monitor.sock" "$OUT/serial.log" <<'PY' &
+import pathlib, socket, sys, time
+sockpath, logpath = sys.argv[1:]
+for _ in range(200):
+    if pathlib.Path(sockpath).exists() and pathlib.Path(logpath).exists() and "B04_TIMER_TICKS_OK" in pathlib.Path(logpath).read_text(errors="replace"):
+        try:
+            with socket.socket(socket.AF_UNIX) as sock:
+                sock.connect(sockpath)
+                sock.settimeout(1)
+                sock.recv(4096)
+                for command in ("info qtree", "info pic", "sendkey a", "info pic"):
+                    sock.sendall((command + "\n").encode())
+                    chunks = []
+                    deadline = time.monotonic() + 1.5
+                    while time.monotonic() < deadline:
+                        try:
+                            chunk = sock.recv(65536)
+                            if not chunk:
+                                break
+                            chunks.append(chunk)
+                        except socket.timeout:
+                            break
+                    print("QEMU_HMP_" + command.replace(" ", "_") + ":", repr(b"".join(chunks).decode(errors="replace")[-5000:]), flush=True)
+            break
+        except OSError:
+            pass
+    time.sleep(.05)
+else:
+    sys.exit("FAIL: QEMU monitor not ready for keyboard injection")
+PY
+  injector_pid=$!
+fi
 set +e
-timeout --signal=TERM --kill-after=3s 20s qemu-system-x86_64 -machine q35 -m 128M -cdrom "$OUT/kernel.iso" -boot d -display none -monitor none -serial "file:$OUT/serial.log" -no-reboot -no-shutdown -d int,cpu_reset -D "$OUT/qemu-debug.log" >"$OUT/qemu.log" 2>&1
+timeout --signal=TERM --kill-after=3s 20s qemu-system-x86_64 -machine q35 -m 128M -cdrom "$OUT/kernel.iso" -boot d -display none -monitor "unix:$OUT/qemu-monitor.sock,server,nowait" -serial "file:$OUT/serial.log" -no-reboot -no-shutdown -d int,cpu_reset -D "$OUT/qemu-debug.log" >"$OUT/qemu.log" 2>&1
 rc=$?
 set -e
+if [[ -n "${injector_pid:-}" ]]; then wait "$injector_pid" || { echo "FAIL: keyboard injection failed" >&2; exit 1; }; fi
 if [[ "$rc" != 124 && "$rc" != 0 ]]; then
   echo "FAIL: QEMU exited unexpectedly (status $rc)" >&2
   cat "$OUT/qemu.log" >&2
@@ -42,6 +77,19 @@ PY
   if command -v objdump >/dev/null; then
     objdump -dr "$OUT/interrupts.o" | tail -110 >&2 || true
   fi
+  exit 1
+fi
+if ! grep -Fxq 'B04_TIMER_TICKS_OK' "$OUT/serial.log"; then
+  echo 'FAIL: five PIT timer interrupts not observed' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
+if [[ "${B04_EXPECT_KEYBOARD:-0}" == "1" ]] && ! grep -Fxq "B04_KEYBOARD_IRQ" "$OUT/serial.log"; then
+  echo "FAIL: injected PS/2 key did not trigger IRQ1" >&2
+  echo "=== Serial evidence ===" >&2
+  cat "$OUT/serial.log" >&2
+  echo "=== QEMU keyboard IRQ trace ===" >&2
+  grep -E "Servicing hardware INT=0x21|v=21|Triple fault|check_exception" "$OUT/qemu-debug.log" | tail -30 >&2 || true
   exit 1
 fi
 if [[ "${B03_EXPECT_UD2:-0}" == "1" ]]; then
