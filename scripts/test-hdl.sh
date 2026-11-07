@@ -15,7 +15,7 @@ else
   exit 2
 fi
 cd "$TESTS"
-for test in Not And Or Xor Mux HalfAdder FullAdder Add16 ALU Bit Register PC; do
+for test in Not And Or Xor Mux HalfAdder FullAdder Add16 ALU Bit Register PC CPU; do
   echo "Running $test.tst"
   rm -f "$test.out"
   "$SIM" "$test.tst"
