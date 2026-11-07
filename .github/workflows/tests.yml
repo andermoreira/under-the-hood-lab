@@ -83,6 +83,7 @@ jobs:
         env:
           LIMINE_HEADER: /tmp/limine.h
           LIMINE_DIR: /tmp/limine
+          B05_DISASSEMBLE: "1"
         run: |
           make test-kernel-boot
           B04_EXPECT_KEYBOARD=1 bash scripts/test-kernel-boot.sh
