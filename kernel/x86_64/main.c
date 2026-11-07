@@ -114,6 +114,20 @@ void kmain(void) {
         serial_write("B06_HEAP_FAIL\n");
         for (;;) __asm__ volatile ("cli; hlt");
     }
+    if (heap_free_page(NULL) || heap_free_page((void *)(page + 1))) {
+        serial_write("B06_HEAP_INVALID_FREE_FAIL\n");
+        for (;;) __asm__ volatile ("cli; hlt");
+    }
+    uint64_t free_before_heap_reuse = pmm_free_count();
+    for (unsigned cycle = 0; cycle < 16; ++cycle) {
+        uint8_t *reused = heap_alloc_page();
+        if (!reused || reused[0] != 0 || reused[4095] != 0 ||
+            !heap_free_page(reused) || pmm_free_count() != free_before_heap_reuse) {
+            serial_write("B06_HEAP_REUSE_FAIL\n");
+            for (;;) __asm__ volatile ("cli; hlt");
+        }
+    }
+    serial_write("B06_HEAP_REUSE_OK\n");
     serial_write("B06_HEAP_PAGE_OK\n");
     uint64_t free_before_paging = pmm_free_count();
     if (!paging_init(hhdm_request.response->offset)) {
