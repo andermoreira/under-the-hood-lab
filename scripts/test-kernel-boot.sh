@@ -26,7 +26,22 @@ fi
 if ! grep -Fxq 'KERNEL_READY' "$OUT/serial.log"; then
   echo "FAIL: KERNEL_READY not observed on serial console" >&2
   cat "$OUT/serial.log" "$OUT/qemu.log" >&2
-  grep -E "v=0d|v=08|Triple fault|check_exception" "$OUT/qemu-debug.log" | tail -25 >&2 || true
+  echo '=== First QEMU exception and CPU register snapshot ===' >&2
+  python3 - "$OUT/qemu-debug.log" <<'PY' >&2
+from pathlib import Path
+import sys
+lines = Path(sys.argv[1]).read_text(errors="replace").splitlines()
+for i, line in enumerate(lines):
+    if "check_exception old:" in line or "v=0e" in line:
+        print("\\n".join(lines[max(0, i - 8): min(len(lines), i + 55)]))
+        break
+else:
+    print("No CPU exception found in QEMU debug log")
+PY
+  echo '=== Disassembly around segment transition ===' >&2
+  if command -v objdump >/dev/null; then
+    objdump -dr "$OUT/interrupts.o" | tail -110 >&2 || true
+  fi
   exit 1
 fi
 if [[ "${B03_EXPECT_UD2:-0}" == "1" ]]; then
