@@ -16,6 +16,15 @@ extern int pmm_free(uint64_t physical);
 
 static uint64_t direct_map;
 static uint64_t mapped_frame;
+static int allocation_budget = -1;
+
+/* Deterministic failure injection for QEMU rollback tests. */
+void paging_set_allocation_budget(int budget) { allocation_budget = budget; }
+static uint64_t paging_alloc_frame(void) {
+    if (allocation_budget == 0) return UINT64_MAX;
+    if (allocation_budget > 0) --allocation_budget;
+    return pmm_alloc();
+}
 
 static void zero_page(uint64_t *table) {
     for (unsigned i = 0; i < 512; ++i) table[i] = 0;
@@ -54,7 +63,7 @@ int paging_map_test_page(void) {
             table = table_at(entry & ADDRESS_MASK);
             continue;
         }
-        uint64_t frame = pmm_alloc();
+        uint64_t frame = paging_alloc_frame();
         if (frame == UINT64_MAX) goto rollback;
         uint64_t *child = table_at(frame);
         zero_page(child);
@@ -67,7 +76,7 @@ int paging_map_test_page(void) {
     }
     unsigned leaf = (unsigned)((TEST_VIRTUAL >> 12) & 511);
     if (table[leaf] & PRESENT) goto rollback;
-    leaf_frame = pmm_alloc();
+    leaf_frame = paging_alloc_frame();
     if (leaf_frame == UINT64_MAX) goto rollback;
     table[leaf] = leaf_frame | PRESENT | WRITABLE;
     __asm__ volatile ("invlpg (%0)" : : "r"((uintptr_t)TEST_VIRTUAL) : "memory");
