@@ -15,7 +15,7 @@ else
   exit 2
 fi
 cd "$TESTS"
-for test in Not And Or Xor Mux HalfAdder FullAdder Add16 ALU; do
+for test in Not And Or Xor Mux HalfAdder FullAdder Add16 ALU Bit Register; do
   echo "Running $test.tst"
   rm -f "$test.out"
   "$SIM" "$test.tst"
@@ -25,4 +25,4 @@ for test in Not And Or Xor Mux HalfAdder FullAdder Add16 ALU; do
   fi
   python3 "$ROOT/tools/check_cmp.py" "$test.cmp" "$test.out"
 done
-echo "PASS: official simulator produced matching output for all four circuits"
+echo "PASS: official simulator produced matching output for all listed circuits"
