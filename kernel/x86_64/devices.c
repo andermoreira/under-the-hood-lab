@@ -31,6 +31,7 @@ void irq_timer_handler(void) {
     outb(0x20, 0x20);
 }
 void irq_keyboard_handler(void) {
+    serial_write("B04_IRQ1_ENTER\n");
     uint8_t status = inb(0x64);
     if (status & 1) {
         last_scancode = inb(0x60);
