@@ -15,7 +15,7 @@ cp "$LIMINE_DIR/limine-bios.sys" "$LIMINE_DIR/limine-bios-cd.bin" "$LIMINE_DIR/l
 xorriso -as mkisofs -R -r -J -b boot/limine/limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot boot/limine/limine-uefi-cd.bin -efi-boot-part --efi-boot-image -o "$OUT/kernel.iso" "$OUT/iso_root" >/dev/null 2>&1
 "$LIMINE_DIR/limine" bios-install "$OUT/kernel.iso"
 set +e
-timeout --signal=TERM --kill-after=3s 20s qemu-system-x86_64 -machine q35 -m 128M -cdrom "$OUT/kernel.iso" -boot d -display none -monitor none -serial "file:$OUT/serial.log" -no-reboot -no-shutdown >"$OUT/qemu.log" 2>&1
+timeout --signal=TERM --kill-after=3s 20s qemu-system-x86_64 -machine q35 -m 128M -cdrom "$OUT/kernel.iso" -boot d -display none -monitor none -serial "file:$OUT/serial.log" -no-reboot -no-shutdown -d int,cpu_reset -D "$OUT/qemu-debug.log" >"$OUT/qemu.log" 2>&1
 rc=$?
 set -e
 if [[ "$rc" != 124 && "$rc" != 0 ]]; then
@@ -26,7 +26,33 @@ fi
 if ! grep -Fxq 'KERNEL_READY' "$OUT/serial.log"; then
   echo "FAIL: KERNEL_READY not observed on serial console" >&2
   cat "$OUT/serial.log" "$OUT/qemu.log" >&2
+  echo '=== First QEMU exception and CPU register snapshot ===' >&2
+  python3 - "$OUT/qemu-debug.log" <<'PY' >&2
+from pathlib import Path
+import sys
+lines = Path(sys.argv[1]).read_text(errors="replace").splitlines()
+for i, line in enumerate(lines):
+    if "check_exception old:" in line or "v=0e" in line:
+        print("\\n".join(lines[max(0, i - 8): min(len(lines), i + 55)]))
+        break
+else:
+    print("No CPU exception found in QEMU debug log")
+PY
+  echo '=== Disassembly around segment transition ===' >&2
+  if command -v objdump >/dev/null; then
+    objdump -dr "$OUT/interrupts.o" | tail -110 >&2 || true
+  fi
   exit 1
+fi
+if [[ "${B03_EXPECT_UD2:-0}" == "1" ]]; then
+  grep -Fxq 'EXCEPTION_UD_VECTOR_6' "$OUT/serial.log" || { echo 'FAIL: expected #UD missing' >&2; exit 1; }
+  python3 - "$OUT/serial.log" <<'PY'
+import pathlib, sys
+lines = pathlib.Path(sys.argv[1]).read_text().splitlines()
+assert lines.index('KERNEL_READY') < lines.index('EXCEPTION_UD_VECTOR_6'), lines
+PY
+else
+  if grep -Fq 'EXCEPTION_UD_VECTOR_6' "$OUT/serial.log"; then echo 'FAIL: unexpected #UD' >&2; exit 1; fi
 fi
 if grep -Eiq 'PANIC|KERNEL_FAULT' "$OUT/serial.log"; then
   echo "FAIL: unexpected kernel failure marker" >&2

@@ -37,7 +37,7 @@ static void serial_init(void) {
     outb(0x3f8 + 4, 0x0b);
 }
 
-static void serial_write(const char *text) {
+void serial_write(const char *text) {
     while (*text) {
         unsigned int spins = 0;
         while (!(inb(0x3f8 + 5) & 0x20) && ++spins < 1000000) {}
@@ -45,12 +45,20 @@ static void serial_write(const char *text) {
     }
 }
 
+extern void interrupts_init(void);
+
 __attribute__((noreturn))
 void kmain(void) {
     if (!LIMINE_BASE_REVISION_SUPPORTED(base_revision)) {
         for (;;) __asm__ volatile ("cli; hlt");
     }
     serial_init();
+    serial_write("B03_BEFORE_TABLES\n");
+    interrupts_init();
+    serial_write("B03_AFTER_TABLES\n");
     serial_write("KERNEL_READY\n");
+#ifdef B03_TRIGGER_UD2
+    __asm__ volatile ("ud2");
+#endif
     for (;;) __asm__ volatile ("hlt");
 }
