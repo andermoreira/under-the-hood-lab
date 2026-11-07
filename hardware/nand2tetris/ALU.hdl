@@ -1,0 +1,22 @@
+// Hack ALU: zx,nx,zy,ny,f,no; flags zr and ng.
+// f=1 selects x+y; f=0 selects x&y.
+CHIP ALU {
+ IN x[16], y[16], zx, nx, zy, ny, f, no;
+ OUT out[16], zr, ng;
+ PARTS:
+ Mux16(a=x, b=false, sel=zx, out=x0);
+ Not16(in=x0, out=x0n);
+ Mux16(a=x0, b=x0n, sel=nx, out=x1);
+ Mux16(a=y, b=false, sel=zy, out=y0);
+ Not16(in=y0, out=y0n);
+ Mux16(a=y0, b=y0n, sel=ny, out=y1);
+ And16(a=x1, b=y1, out=andResult);
+ Add16(a=x1, b=y1, out=addResult);
+ Mux16(a=andResult, b=addResult, sel=f, out=result);
+ Not16(in=result, out=negated);
+ Mux16(a=result, b=negated, sel=no, out=out, out[0..7]=low, out[8..15]=high, out[15]=ng);
+ Or8Way(in=low, out=lowAny);
+ Or8Way(in=high, out=highAny);
+ Or(a=lowAny, b=highAny, out=any);
+ Not(in=any, out=zr);
+}
