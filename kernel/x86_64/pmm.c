@@ -19,7 +19,7 @@ void pmm_init(const struct limine_memmap_response *map) {
     for (size_t i = 0; i < sizeof(used); ++i) used[i] = 0xff;
     for (size_t i = 0; i < sizeof(owned); ++i) owned[i] = 0;
     free_frames = 0;
-    cursor = 0;
+    cursor = 1;
     if (!map) return;
     for (uint64_t e = 0; e < map->entry_count; ++e) {
         const struct limine_memmap_entry *entry = map->entries[e];
@@ -29,6 +29,7 @@ void pmm_init(const struct limine_memmap_response *map) {
         if ((entry->base % PAGE_SIZE) + (entry->length % PAGE_SIZE) >= PAGE_SIZE) ++end;
         if (start >= MAX_FRAMES) continue;
         if (end > MAX_FRAMES) end = MAX_FRAMES;
+        if (start == 0) start = 1;
         for (uint64_t frame = start; frame < end; ++frame) {
             if (bit_get(frame)) { bit_clear(frame); ++free_frames; }
         }
