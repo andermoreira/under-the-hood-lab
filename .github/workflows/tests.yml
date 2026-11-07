@@ -41,3 +41,25 @@ jobs:
             hardware-simulator.log
             hardware/nand2tetris/tests/*.out
           if-no-files-found: warn
+
+  kernel-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Limine protocol header
+        run: |
+          curl --fail --location --retry 3 --output /tmp/limine.h https://raw.githubusercontent.com/limine-bootloader/limine-protocol/trunk/include/limine.h
+          test -s /tmp/limine.h
+      - name: Build and inspect freestanding ELF
+        env:
+          LIMINE_HEADER: /tmp/limine.h
+        run: |
+          make test-kernel-build
+          readelf -l build/kernel/kernel.elf
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: b01-kernel-elf
+          path: build/kernel/kernel.elf
+          if-no-files-found: warn

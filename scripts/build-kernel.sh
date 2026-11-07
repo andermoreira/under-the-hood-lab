@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+OUT="${KERNEL_OUT:-$ROOT/build/kernel}"
+mkdir -p "$OUT"
+: "${CC:=gcc}"
+: "${LD:=ld}"
+: "${READELF:=readelf}"
+if [[ -n "${LIMINE_HEADER:-}" ]]; then
+  test -f "$LIMINE_HEADER" || { echo "Missing LIMINE_HEADER: $LIMINE_HEADER" >&2; exit 2; }
+  cp "$LIMINE_HEADER" "$OUT/limine.h"
+elif [[ -f "$ROOT/kernel/x86_64/limine.h" ]]; then
+  cp "$ROOT/kernel/x86_64/limine.h" "$OUT/limine.h"
+else
+  echo "NOT_RUN: set LIMINE_HEADER to an installed Limine protocol header" >&2
+  exit 2
+fi
+"$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-stack-check -fno-pic -fno-pie -m64 -march=x86-64 -mno-red-zone -mcmodel=kernel -fno-asynchronous-unwind-tables -I"$OUT" -c "$ROOT/kernel/x86_64/main.c" -o "$OUT/main.o"
+"$LD" -nostdlib -static -z max-page-size=0x1000 -T "$ROOT/kernel/x86_64/linker.ld" "$OUT/main.o" -o "$OUT/kernel.elf"
+"$READELF" -h "$OUT/kernel.elf" | grep -q 'Machine:.*Advanced Micro Devices X86-64'
+"$READELF" -h "$OUT/kernel.elf" | grep -q 'Type:.*EXEC'
+"$READELF" -h "$OUT/kernel.elf" | grep -q 'Entry point address:'
+if "$READELF" -d "$OUT/kernel.elf" 2>/dev/null | grep -q NEEDED; then
+  echo "FAIL: kernel has dynamic dependencies" >&2
+  exit 1
+fi
+echo "PASS: freestanding x86-64 kernel ELF built at $OUT/kernel.elf"
