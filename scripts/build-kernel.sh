@@ -28,4 +28,7 @@ if "$READELF" -d "$OUT/kernel.elf" 2>/dev/null | grep -q NEEDED; then
   echo "FAIL: kernel has dynamic dependencies" >&2
   exit 1
 fi
+if [[ "${B05_DISASSEMBLE:-0}" == "1" ]]; then
+  objdump -d -M intel "$OUT/kernel.elf" | sed -n '/<pmm_alloc>:/,/^$/p'
+fi
 echo "PASS: freestanding x86-64 kernel ELF built at $OUT/kernel.elf"
