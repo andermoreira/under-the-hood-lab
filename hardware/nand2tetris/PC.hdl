@@ -1,0 +1,12 @@
+// Priority: reset > load > inc > hold. Updates on the clock.
+CHIP PC {
+ IN in[16], load, inc, reset;
+ OUT out[16];
+ PARTS:
+ Inc16(in=stored, out=incremented);
+ Mux16(a=stored, b=incremented, sel=inc, out=step);
+ Mux16(a=step, b=in, sel=load, out=loaded);
+ Mux16(a=loaded, b=false, sel=reset, out=next);
+ Register(in=next, load=true, out=stored);
+ Or16(a=stored, b=false, out=out);
+}
