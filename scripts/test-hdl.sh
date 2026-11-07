@@ -15,7 +15,7 @@ else
   exit 2
 fi
 cd "$TESTS"
-for test in Not And Or Xor Mux HalfAdder FullAdder; do
+for test in Not And Or Xor Mux HalfAdder FullAdder Add16; do
   echo "Running $test.tst"
   rm -f "$test.out"
   "$SIM" "$test.tst"
