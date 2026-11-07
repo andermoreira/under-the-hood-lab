@@ -56,6 +56,9 @@ void serial_write(const char *text) {
     }
 }
 
+extern int paging_init(uint64_t offset);
+extern int paging_map_test_page(void);
+extern int paging_unmap_test_page(void);
 extern int heap_init(uint64_t offset);
 extern void *heap_alloc_page(void);
 extern int heap_free_page(void *pointer);
@@ -111,6 +114,11 @@ void kmain(void) {
         for (;;) __asm__ volatile ("cli; hlt");
     }
     serial_write("B06_HEAP_PAGE_OK\n");
+    if (!paging_init(hhdm_request.response->offset) || !paging_map_test_page() || !paging_unmap_test_page()) {
+        serial_write("B06_PAGING_FAIL\n");
+        for (;;) __asm__ volatile ("cli; hlt");
+    }
+    serial_write("B06_PAGING_MAP_UNMAP_OK\n");
     devices_init();
     while (timer_ticks() < 5) __asm__ volatile ("hlt");
     serial_write("B04_TIMER_TICKS_OK\n");
