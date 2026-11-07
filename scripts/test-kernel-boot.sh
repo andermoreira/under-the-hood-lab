@@ -94,6 +94,11 @@ if ! grep -Fxq 'B06_PAGING_MAP_UNMAP_OK' "$OUT/serial.log"; then
   cat "$OUT/serial.log" >&2
   exit 1
 fi
+if ! grep -Fxq 'B06_HEAP_REUSE_OK' "$OUT/serial.log"; then
+  echo 'FAIL: heap zeroing and repeated reuse test not observed' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
 if ! grep -Fxq 'B06_HEAP_PAGE_OK' "$OUT/serial.log"; then
   echo 'FAIL: page-backed heap smoke test not observed' >&2
   cat "$OUT/serial.log" >&2
