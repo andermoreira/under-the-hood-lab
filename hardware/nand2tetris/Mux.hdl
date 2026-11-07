@@ -1,0 +1,11 @@
+// A02: select a when sel=0; b when sel=1. NAND-only.
+CHIP Mux {
+    IN a, b, sel;
+    OUT out;
+
+    PARTS:
+    Nand(a=sel, b=sel, out=nsel);
+    Nand(a=a, b=nsel, out=left);
+    Nand(a=b, b=sel, out=right);
+    Nand(a=left, b=right, out=out);
+}
