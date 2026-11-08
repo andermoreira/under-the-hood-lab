@@ -89,6 +89,8 @@ jobs:
           B04_EXPECT_KEYBOARD=1 bash scripts/test-kernel-boot.sh
           KERNEL_OUT="$PWD/build/kernel-ud2" KERNEL_CFLAGS="-DB03_TRIGGER_UD2" bash scripts/build-kernel.sh
           KERNEL_OUT="$PWD/build/kernel-ud2" B03_EXPECT_UD2=1 bash scripts/test-kernel-boot.sh
+          KERNEL_OUT="$PWD/build/kernel-pf" KERNEL_CFLAGS="-DB06_TRIGGER_PF" bash scripts/build-kernel.sh
+          KERNEL_OUT="$PWD/build/kernel-pf" B06_EXPECT_PF=1 bash scripts/test-kernel-boot.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -102,4 +104,6 @@ jobs:
             build/kernel-ud2/qemu.log
             build/kernel-ud2/qemu-debug.log
             build/kernel-ud2/kernel.elf
+            build/kernel-pf/serial.log
+            build/kernel-pf/qemu-debug.log
           if-no-files-found: warn

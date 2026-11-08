@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "limine.h"
-extern void serial_write(const char *message);
 
 /* B05 deliberately manages only frames below 4 GiB; B06 will extend this. */
 #define PAGE_SIZE 4096ULL
@@ -40,11 +39,8 @@ uint64_t pmm_free_count(void) { return free_frames; }
 
 /* Returns physical address, or UINT64_MAX when exhausted. Frame zero is never allocated. */
 uint64_t pmm_alloc(void) {
-    serial_write("B05_PMM_ALLOC_ENTER\n");
-    serial_write("B05_PMM_SCAN_START\n");
     for (uint64_t i = cursor; i < MAX_FRAMES; ++i) {
         if (!bit_get(i)) {
-            serial_write("B05_PMM_FOUND_FRAME\n");
             bit_set(i);
             owned[i >> 3] |= (uint8_t)(1u << (i & 7));
             --free_frames;

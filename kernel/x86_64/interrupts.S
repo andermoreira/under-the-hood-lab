@@ -9,6 +9,18 @@ isr_invalid_opcode:
     hlt
     jmp 1b
 
+/* #PF pushes an error code; pass it as the first argument. Fatal for now. */
+.global isr_page_fault
+.type isr_page_fault, @function
+isr_page_fault:
+    cld
+    movq (%rsp), %rdi
+    andq $-16, %rsp
+    call exception_page_fault
+2:  cli
+    hlt
+    jmp 2b
+
 /* Hardware IRQ entry: preserve volatile registers, align SysV call stack,
    and return with iretq. Both IRQs are interrupt gates (IF cleared). */
 .macro IRQ_ENTRY name, handler

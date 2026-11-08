@@ -57,6 +57,7 @@ void serial_write(const char *text) {
 }
 
 extern int paging_init(uint64_t offset);
+extern int paging_adopt_kernel_space(void);
 extern void paging_set_allocation_budget(int budget);
 extern int paging_map_test_page(void);
 extern int paging_unmap_test_page(void);
@@ -129,11 +130,16 @@ void kmain(void) {
     }
     serial_write("B06_HEAP_REUSE_OK\n");
     serial_write("B06_HEAP_PAGE_OK\n");
-    uint64_t free_before_paging = pmm_free_count();
     if (!paging_init(hhdm_request.response->offset)) {
         serial_write("B06_PAGING_INIT_FAIL\n");
         for (;;) __asm__ volatile ("cli; hlt");
     }
+    if (!paging_adopt_kernel_space() || paging_adopt_kernel_space()) {
+        serial_write("B06_OWN_PML4_FAIL\n");
+        for (;;) __asm__ volatile ("cli; hlt");
+    }
+    serial_write("B06_OWN_PML4_OK\n");
+    uint64_t free_before_paging = pmm_free_count();
     for (int budget = 0; budget < 4; ++budget) {
         paging_set_allocation_budget(budget);
         if (paging_map_test_page() || pmm_free_count() != free_before_paging) {
@@ -161,6 +167,10 @@ void kmain(void) {
     devices_init();
     while (timer_ticks() < 5) __asm__ volatile ("hlt");
     serial_write("B04_TIMER_TICKS_OK\n");
+#ifdef B06_TRIGGER_PF
+    /* Lower half of the kernel-owned PML4 is empty: this read must fault. */
+    (void)*(volatile uint64_t *)(uintptr_t)0x1000;
+#endif
 #ifdef B03_TRIGGER_UD2
     __asm__ volatile ("ud2");
 #endif

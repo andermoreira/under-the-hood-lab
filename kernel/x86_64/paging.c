@@ -43,6 +43,28 @@ int paging_init(uint64_t hhdm) {
     return 1;
 }
 
+/* Replace Limine's top-level table with a kernel-owned PML4. The lower half
+ * (user space from B08 on) starts empty; the higher half (kernel image, HHDM)
+ * still points at Limine's PDPTs, so lower levels remain shared. */
+static uint64_t kernel_pml4 = UINT64_MAX;
+
+int paging_adopt_kernel_space(void) {
+    if (!direct_map || kernel_pml4 != UINT64_MAX) return 0;
+    uint64_t frame = pmm_alloc();
+    if (frame == UINT64_MAX) return 0;
+    uint64_t cr3;
+    __asm__ volatile ("mov %%cr3, %0" : "=r"(cr3));
+    const uint64_t *limine_pml4 = table_at(cr3 & ADDRESS_MASK);
+    uint64_t *pml4 = table_at(frame);
+    for (unsigned i = 0; i < 256; ++i) pml4[i] = 0;
+    for (unsigned i = 256; i < 512; ++i) pml4[i] = limine_pml4[i];
+    __asm__ volatile ("mov %0, %%cr3" : : "r"(frame) : "memory");
+    __asm__ volatile ("mov %%cr3, %0" : "=r"(cr3));
+    if ((cr3 & ADDRESS_MASK) != frame) return 0;
+    kernel_pml4 = frame;
+    return 1;
+}
+
 /* Keep each newly installed parent entry until mapping commits. On failure,
  * unlink entries before returning their backing frames to the PMM. */
 int paging_map_test_page(void) {
