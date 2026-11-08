@@ -27,4 +27,4 @@ Altere a condição `JGT` para sempre saltar. O teste `0;JGT` deve denunciar a f
 Explique por que o endereço de salto vem do registrador A e por que a escrita em M é um sinal de saída para a memória externa, não uma RAM dentro da CPU.
 
 ## Evidência
-O modelo Python não prova a correção do HDL. ENG, SCI e LEARN são gates distintos. Simulador oficial: NOT_RUN.
+O modelo Python não prova a correção do HDL. ENG, SCI e LEARN são gates distintos. Estado: simulador oficial PASS na CI (job `hardware-simulator`, run 42429996468, `main` @ 4f4b94d); o gate LEARN continua aberto até o registro do estudante.

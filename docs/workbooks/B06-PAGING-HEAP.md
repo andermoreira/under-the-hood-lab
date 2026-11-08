@@ -1,28 +1,56 @@
-# B06 — Paging and page-backed heap
+# B06 — Paginação, #PF e heap: observe, preveja, construa e refute
 
-## Previsão (responda antes de ler o código)
-1. Se a nova PML4 copiar só as entradas 0–255 e zerar 256–511, o que acontece logo após `mov %0, %%cr3`?
-2. Por que copiar só o PML4 não basta para dizer que "o kernel é dono" de todas as tabelas?
+**Não consulte o gabarito antes de tentar.**
 
-## Contract
-- Heap: page-sized (4 KiB) allocations from the PMM, accessed through Limine's HHDM, zeroed, with ownership and double-free rejection.
-- kmalloc: power-of-two classes 32–1024 bytes; one heap page per slab with header + bitmap; natural alignment; rejects `kfree` of NULL, double free and interior pointers; `kmalloc(0)` and `> 1024` return NULL. Gate `B06_KMALLOC_OK`: 200×32 B (two slabs), 16 reuse cycles with no PMM growth.
-- Paging: map/unmap one private 4 KiB page at `0xffffc00000000000`, with rollback on PMM failure (fault injection, 4 points) and reclaiming only the tables this module created.
-- Own address space: `paging_adopt_kernel_space()` allocates a PML4, leaves entries 0–255 (lower half, future user space) empty, copies entries 256–511 (kernel image + HHDM) from Limine and loads CR3. The QEMU gate requires `B06_OWN_PML4_OK` before running the paging tests.
+## 1. Fenômeno
+O kernel usa endereços como `0xffffffff80001234`, mas a máquina tem só 128 MiB. Quem traduz esse endereço virtual para um físico e o que acontece quando não existe tradução?
 
-## Evidence (2026-11-07, Docker `ubuntu:24.04` amd64, QEMU 8.2.2, GCC 13.3.0, Limine `v9.x-binary` @ `ee5d29c`)
-- Positive: `make test-kernel-boot`, `B04_EXPECT_KEYBOARD=1` and the `#UD` variant print `PASS`.
-- Limit case: a second `paging_adopt_kernel_space()` call must fail; the paging tests run with exact PMM accounting on the new CR3.
-- Deliberate failure: clearing Present on entries 256–511 → QEMU `Triple fault`, gate `FAIL: kernel did not switch CR3 to its own PML4`.
+## 2. Previsão (preencher antes de executar)
+- Se a nova PML4 copiasse só as entradas 0–255 e zerasse 256–511, o que aconteceria logo após `mov %0, %%cr3`?
+- Por que copiar só a PML4 não basta para dizer que o kernel é dono de todas as tabelas?
+- Lendo `0x1000` com a metade baixa vazia, quais valores de CR2 e do código de erro você espera?
+- `kmalloc(24)` devolve um ponteiro alinhado a quanto? E `kfree` duas vezes no mesmo ponteiro?
 
-- #PF negative control: `-DB06_TRIGGER_PF` reads `0x1000`; gate requires `EXCEPTION_PF_CR2_0x0000000000001000` and `EXCEPTION_PF_ERROR_0x0000000000000000` (not-present, read, supervisor). Before the handler existed, the same build produced `Triple fault`.
+## 3. Analogia
+A tabela de páginas é um índice de quatro níveis num arquivo de gavetas: andar (PML4), corredor (PDPT), armário (PD), gaveta (PT).
 
-- kmalloc deliberate failure: `kfree` that never clears the bitmap → `B06_KMALLOC_FAIL`, gate FAIL.
+## 4. Onde a analogia falha
+A CPU memoriza traduções recentes (TLB): mudar o índice não apaga o que ela já decorou até recarregar o CR3 ou rodar `invlpg`. E, no nosso caso, a nova PML4 aponta para corredores que ainda pertencem ao Limine.
 
-## Limitations
-- Lower levels (PDPT/PD/PT) of the higher half remain **Limine's** tables, which live in bootloader-reclaimable memory: never hand that memory to the PMM until the kernel rebuilds them itself.
-- #PF handler (vector 14) is diagnostic only: prints CR2 and the error code, then halts. No demand paging or recovery.
-- PMM covers only frames below 4 GiB; kmalloc never returns empty slabs, does not zero reused memory, has no lock (single CPU, not used in IRQs) and trusts any page with the slab magic; no SMP/TLB shootdown.
+## 5. Faça
+1. Leia `kernel/x86_64/paging.c`, `heap.c`, `kmalloc.c` e `isr_page_fault` em `interrupts.S`.
+2. Rode `make test-kernel-boot` e confira, em ordem: `B06_HEAP_PAGE_OK`, `B06_KMALLOC_OK`, `B06_OWN_PML4_OK`, `B06_PAGING_ROLLBACK_OK`, `B06_PAGING_MAP_UNMAP_OK`.
+3. Rode a variante `KERNEL_CFLAGS=-DB06_TRIGGER_PF` com `B06_EXPECT_PF=1` e leia as linhas `EXCEPTION_PF_*`.
 
-## Analogy and where it fails
-New PML4 = a new building directory (index) that points to the same floors of the old building. It fails because the CPU caches the old index (TLB): changing the directory does not "erase" what was memorized until CR3 is reloaded/`invlpg`, and the floors still belong to someone else.
+## 6. Refute
+- Limpe o bit Present das entradas 256–511 numa cópia: o QEMU deve dar `Triple fault` e o gate deve falhar.
+- Faça `kfree` não limpar o bitmap: os ciclos de reuso devem consumir frames novos e `B06_KMALLOC_FAIL` deve aparecer.
+- Compile a variante #PF sem o `set_gate(14, ...)`: o que muda no `qemu-debug.log`?
+
+## 7. Explique sem analogia
+Explique como os bits 47–12 de um endereço virtual indexam os quatro níveis, o que significam os bits P, W e PS de uma entrada, e por que `paging_map_test_page` desfaz entradas recém-criadas quando uma alocação falha.
+
+## 8. Transfira
+No B08, cada processo terá sua própria metade baixa. Usando `paging_adopt_kernel_space` como ponto de partida, como você criaria um espaço de endereçamento novo por processo e o que precisaria ser copiado?
+
+## 9. Revisão
+Sem consulta, refaça as previsões da seção 2 após 1 dia, 7 dias e 30 dias. Registre data e acertos no seu diário.
+
+## 10. Evidência e limites
+Ambiente local: Docker `ubuntu:24.04` e `ubuntu:26.04` (amd64), QEMU 8.2.2, GCC 13.3.0 e 15.2.0, Limine `v9.x-binary` @ `ee5d29c`; boot normal, teclado, #UD e #PF imprimem `PASS`, e a CI repete no `main`.
+
+- **Heap de páginas:** páginas de 4 KiB do PMM via HHDM, zeradas, com checagem de dono e de double free.
+- **kmalloc:** classes 32–1024 bytes, uma página por slab com cabeçalho e bitmap. Nunca devolve slabs vazios, não zera memória reutilizada, não tem trava (um núcleo, fora de IRQs) e confia em qualquer página que tenha a marca de slab.
+- **Paginação:** map/unmap de uma página em `0xffffc00000000000`, com rollback em 4 pontos de falha injetada e devolução só das tabelas que o módulo criou.
+- **PML4 própria:** metade baixa vazia, metade alta copiada do Limine. PDPT/PD/PT da metade alta continuam sendo do Limine, em memória "bootloader reclaimable" que não pode ir para o PMM.
+- **#PF:** só diagnóstico (CR2 e código de erro, depois para). Sem paginação sob demanda, sem SMP nem TLB shootdown.
+
+<details>
+<summary>Gabarito parcial — abra somente após tentar</summary>
+
+- Zerar 256–511: a próxima busca de instrução (código do kernel na metade alta) não tem tradução → #PF; a IDT e a pilha também ficaram sem tradução → double fault → triple fault.
+- Só a PML4 é nova; os níveis abaixo dela continuam sendo as tabelas do Limine, compartilhadas.
+- CR2 = `0x1000`; código de erro `0`: página ausente (P=0), leitura (W=0), modo supervisor (U=0).
+- `kmalloc(24)` usa a classe 32: ponteiro alinhado a 32. O segundo `kfree` devolve 0 (bit já limpo).
+- Transferência: alocar uma PML4 por processo, copiar 256–511 (kernel compartilhado), deixar 0–255 vazias e mapear o programa com o bit U.
+</details>
