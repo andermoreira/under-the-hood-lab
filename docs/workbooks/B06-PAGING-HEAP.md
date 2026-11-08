@@ -6,6 +6,7 @@
 
 ## Contract
 - Heap: page-sized (4 KiB) allocations from the PMM, accessed through Limine's HHDM, zeroed, with ownership and double-free rejection.
+- kmalloc: power-of-two classes 32–1024 bytes; one heap page per slab with header + bitmap; natural alignment; rejects `kfree` of NULL, double free and interior pointers; `kmalloc(0)` and `> 1024` return NULL. Gate `B06_KMALLOC_OK`: 200×32 B (two slabs), 16 reuse cycles with no PMM growth.
 - Paging: map/unmap one private 4 KiB page at `0xffffc00000000000`, with rollback on PMM failure (fault injection, 4 points) and reclaiming only the tables this module created.
 - Own address space: `paging_adopt_kernel_space()` allocates a PML4, leaves entries 0–255 (lower half, future user space) empty, copies entries 256–511 (kernel image + HHDM) from Limine and loads CR3. The QEMU gate requires `B06_OWN_PML4_OK` before running the paging tests.
 
@@ -16,10 +17,12 @@
 
 - #PF negative control: `-DB06_TRIGGER_PF` reads `0x1000`; gate requires `EXCEPTION_PF_CR2_0x0000000000001000` and `EXCEPTION_PF_ERROR_0x0000000000000000` (not-present, read, supervisor). Before the handler existed, the same build produced `Triple fault`.
 
+- kmalloc deliberate failure: `kfree` that never clears the bitmap → `B06_KMALLOC_FAIL`, gate FAIL.
+
 ## Limitations
 - Lower levels (PDPT/PD/PT) of the higher half remain **Limine's** tables, which live in bootloader-reclaimable memory: never hand that memory to the PMM until the kernel rebuilds them itself.
 - #PF handler (vector 14) is diagnostic only: prints CR2 and the error code, then halts. No demand paging or recovery.
-- PMM covers only frames below 4 GiB; the heap is page-granular (no `kmalloc` of small objects); no SMP/TLB shootdown.
+- PMM covers only frames below 4 GiB; kmalloc never returns empty slabs, does not zero reused memory, has no lock (single CPU, not used in IRQs) and trusts any page with the slab magic; no SMP/TLB shootdown.
 
 ## Analogy and where it fails
 New PML4 = a new building directory (index) that points to the same floors of the old building. It fails because the CPU caches the old index (TLB): changing the directory does not "erase" what was memorized until CR3 is reloaded/`invlpg`, and the floors still belong to someone else.
