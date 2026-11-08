@@ -167,6 +167,10 @@ void kmain(void) {
     devices_init();
     while (timer_ticks() < 5) __asm__ volatile ("hlt");
     serial_write("B04_TIMER_TICKS_OK\n");
+#ifdef B06_TRIGGER_PF
+    /* Lower half of the kernel-owned PML4 is empty: this read must fault. */
+    (void)*(volatile uint64_t *)(uintptr_t)0x1000;
+#endif
 #ifdef B03_TRIGGER_UD2
     __asm__ volatile ("ud2");
 #endif

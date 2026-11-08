@@ -28,6 +28,7 @@ static uint64_t gdt[] __attribute__((aligned(16))) = {
 static struct idt_gate idt[256] __attribute__((aligned(16)));
 
 extern void isr_invalid_opcode(void);
+extern void isr_page_fault(void);
 extern void isr_timer(void);
 extern void isr_keyboard(void);
 extern void irq_timer_handler(void);
@@ -53,6 +54,7 @@ void interrupts_init(void) {
     /* Install the exception table before changing active segments, so a
        fault during the transition is not automatically a triple fault. */
     set_gate(6, isr_invalid_opcode);
+    set_gate(14, isr_page_fault);
     set_gate(32, isr_timer);
     set_gate(33, isr_keyboard);
     __asm__ volatile ("cli; lidt %0" : : "m"(idtr) : "memory");
@@ -79,5 +81,28 @@ void interrupts_init(void) {
 __attribute__((noreturn))
 void exception_invalid_opcode(void) {
     serial_write("EXCEPTION_UD_VECTOR_6\n");
+    for (;;) __asm__ volatile ("cli; hlt");
+}
+
+static void serial_write_hex_line(const char *prefix, uint64_t value) {
+    char line[64];
+    unsigned n = 0;
+    while (*prefix) line[n++] = *prefix++;
+    line[n++] = '0';
+    line[n++] = 'x';
+    for (int shift = 60; shift >= 0; shift -= 4)
+        line[n++] = "0123456789abcdef"[(value >> shift) & 0xf];
+    line[n++] = '\n';
+    line[n] = 0;
+    serial_write(line);
+}
+
+/* Error code bits: P=0 not-present, W/R=1 write, U/S=1 user, I/D=1 fetch. */
+__attribute__((noreturn))
+void exception_page_fault(uint64_t error_code) {
+    uint64_t cr2;
+    __asm__ volatile ("mov %%cr2, %0" : "=r"(cr2));
+    serial_write_hex_line("EXCEPTION_PF_CR2_", cr2);
+    serial_write_hex_line("EXCEPTION_PF_ERROR_", error_code);
     for (;;) __asm__ volatile ("cli; hlt");
 }

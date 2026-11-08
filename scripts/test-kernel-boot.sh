@@ -137,6 +137,12 @@ PY
 else
   if grep -Fq 'EXCEPTION_UD_VECTOR_6' "$OUT/serial.log"; then echo 'FAIL: unexpected #UD' >&2; exit 1; fi
 fi
+if [[ "${B06_EXPECT_PF:-0}" == "1" ]]; then
+  grep -Fxq 'EXCEPTION_PF_CR2_0x0000000000001000' "$OUT/serial.log" || { echo 'FAIL: expected #PF at lower-half address 0x1000 missing' >&2; cat "$OUT/serial.log" >&2; exit 1; }
+  grep -Fxq 'EXCEPTION_PF_ERROR_0x0000000000000000' "$OUT/serial.log" || { echo 'FAIL: expected not-present kernel read error code missing' >&2; cat "$OUT/serial.log" >&2; exit 1; }
+else
+  if grep -Fq 'EXCEPTION_PF' "$OUT/serial.log"; then echo 'FAIL: unexpected #PF' >&2; cat "$OUT/serial.log" >&2; exit 1; fi
+fi
 if grep -Eiq 'PANIC|KERNEL_FAULT' "$OUT/serial.log"; then
   echo "FAIL: unexpected kernel failure marker" >&2
   exit 1

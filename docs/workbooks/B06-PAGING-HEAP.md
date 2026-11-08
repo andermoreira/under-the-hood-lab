@@ -14,9 +14,11 @@
 - Limit case: a second `paging_adopt_kernel_space()` call must fail; the paging tests run with exact PMM accounting on the new CR3.
 - Deliberate failure: clearing Present on entries 256–511 → QEMU `Triple fault`, gate `FAIL: kernel did not switch CR3 to its own PML4`.
 
+- #PF negative control: `-DB06_TRIGGER_PF` reads `0x1000`; gate requires `EXCEPTION_PF_CR2_0x0000000000001000` and `EXCEPTION_PF_ERROR_0x0000000000000000` (not-present, read, supervisor). Before the handler existed, the same build produced `Triple fault`.
+
 ## Limitations
 - Lower levels (PDPT/PD/PT) of the higher half remain **Limine's** tables, which live in bootloader-reclaimable memory: never hand that memory to the PMM until the kernel rebuilds them itself.
-- No page-fault handler yet: an access to the empty lower half is a triple fault, not a diagnosis.
+- #PF handler (vector 14) is diagnostic only: prints CR2 and the error code, then halts. No demand paging or recovery.
 - PMM covers only frames below 4 GiB; the heap is page-granular (no `kmalloc` of small objects); no SMP/TLB shootdown.
 
 ## Analogy and where it fails
