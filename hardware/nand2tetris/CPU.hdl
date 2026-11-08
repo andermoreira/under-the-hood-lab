@@ -27,7 +27,7 @@ CHIP CPU {
  Or16(a=aluOut, b=false, out=outM);
  And(a=isC, b=instruction[3], out=writeM);
 
- // jump bits: j1=JGT, j2=JEQ, j3=JLT.
+ // jump bits: j1=JLT (instruction[2]), j2=JEQ (instruction[1]), j3=JGT (instruction[0]).
  Or(a=zero, b=negative, out=notPositive);
  Not(in=notPositive, out=positive);
  And(a=instruction[0], b=positive, out=jumpGT);

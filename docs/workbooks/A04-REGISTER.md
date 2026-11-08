@@ -39,4 +39,4 @@ Por que 16 bits de memória exigem 16 elementos de estado, mas podem compartilha
 
 ## Evidência
 
-O modelo Python não comprova a temporização do HDL. Gates separados: ENG, SCI, LEARN. Estado HDL: NOT_RUN até execução.
+O modelo Python não comprova a temporização do HDL. Gates separados: ENG, SCI, LEARN. Estado: simulador oficial PASS na CI (job `hardware-simulator`, run 42429996468, `main` @ 4f4b94d); o gate LEARN continua aberto até o registro do estudante.

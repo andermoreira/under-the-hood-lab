@@ -22,12 +22,12 @@ Para cada caso, anote resultado de 16 bits, carry final e overflow **com sinal**
 1. Leia `hardware/nand2tetris/Add16.hdl` e trace o carry entre os bits 0 e 15.
 2. Execute `python3 -m unittest discover -s tests -v`.
 3. Observe os testes de fronteira e o controle negativo que remove o carry.
-4. A validação da sintaxe e execução do `Add16.hdl` no simulador oficial **ainda não está demonstrada**.
+4. Com `N2T_HOME` configurado, rode `make test-hdl-official` e compare `Add16.out` com `Add16.cmp`.
 
 ## Desafio de transferência
 Como calcular `a - b` com um somador, usando complemento de dois? Qual entrada de carry inicial seria necessária?
 
 ## Critérios
-- ENG: modelo de referência testado; circuito HDL oficial ainda NOT_RUN.
+- ENG: modelo de referência testado; simulador oficial PASS na CI (job `hardware-simulator`, run 42429996468, `main` @ 4f4b94d); o gate LEARN continua aberto até o registro do estudante.
 - SCI: previsões registradas e hipótese refutável.
 - LEARN: explicar carry vs overflow sem recorrer à analogia.

@@ -39,4 +39,4 @@ Explique como um salto condicional na CPU pode definir `load=1` e fornecer o end
 
 ## Gates
 
-ENG: implementação e testes oficiais. SCI: previsão e controle negativo. LEARN: explicar atualização por clock e prioridades sem analogia. Execução HDL: NOT_RUN até evidência.
+ENG: implementação e testes oficiais. SCI: previsão e controle negativo. LEARN: explicar atualização por clock e prioridades sem analogia. Estado: simulador oficial PASS na CI (job `hardware-simulator`, run 42429996468, `main` @ 4f4b94d); o gate LEARN continua aberto até o registro do estudante.
