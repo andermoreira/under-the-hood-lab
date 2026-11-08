@@ -79,6 +79,11 @@ PY
   fi
   exit 1
 fi
+if ! grep -Fxq 'B06_KMALLOC_OK' "$OUT/serial.log"; then
+  echo 'FAIL: kmalloc size-class, reuse and invalid-free checks not observed' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
 if ! grep -Fxq 'B06_OWN_PML4_OK' "$OUT/serial.log"; then
   echo 'FAIL: kernel did not switch CR3 to its own PML4' >&2
   cat "$OUT/serial.log" >&2

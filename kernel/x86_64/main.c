@@ -56,6 +56,40 @@ void serial_write(const char *text) {
     }
 }
 
+extern void *kmalloc(size_t size);
+extern int kfree(void *pointer);
+extern uint64_t pmm_free_count(void);
+
+/* 200 objects of 32 bytes span two slab pages; 16 cycles prove reuse. */
+static void *kmalloc_objects[200];
+static int kmalloc_selftest(void) {
+    if (kmalloc(0) || kmalloc(1025)) return 0;
+    uint8_t *a = kmalloc(24);
+    uint8_t *b = kmalloc(24);
+    if (!a || !b || a == b || ((uintptr_t)a & 31) || ((uintptr_t)b & 31)) return 0;
+    a[0] = 0x11; a[31] = 0x22; b[0] = 0x33;
+    if (a[0] != 0x11 || a[31] != 0x22 || b[0] != 0x33) return 0;
+    if (!kfree(a) || kfree(a) || kfree(b + 1) || kfree(NULL) || !kfree(b)) return 0;
+    for (size_t size = 32; size <= 1024; size *= 2) {
+        void *p = kmalloc(size);
+        if (!p || ((uintptr_t)p & (size - 1)) || !kfree(p)) return 0;
+    }
+    uint64_t free_before_kmalloc = 0;
+    for (unsigned cycle = 0; cycle < 17; ++cycle) {
+        for (unsigned i = 0; i < 200; ++i) {
+            kmalloc_objects[i] = kmalloc(32);
+            if (!kmalloc_objects[i]) return 0;
+            for (unsigned j = 0; j < i; ++j)
+                if (kmalloc_objects[j] == kmalloc_objects[i]) return 0;
+        }
+        for (unsigned i = 0; i < 200; ++i)
+            if (!kfree(kmalloc_objects[i])) return 0;
+        if (cycle == 0) free_before_kmalloc = pmm_free_count();
+        else if (pmm_free_count() != free_before_kmalloc) return 0;
+    }
+    return 1;
+}
+
 extern int paging_init(uint64_t offset);
 extern int paging_adopt_kernel_space(void);
 extern void paging_set_allocation_budget(int budget);
@@ -130,6 +164,11 @@ void kmain(void) {
     }
     serial_write("B06_HEAP_REUSE_OK\n");
     serial_write("B06_HEAP_PAGE_OK\n");
+    if (!kmalloc_selftest()) {
+        serial_write("B06_KMALLOC_FAIL\n");
+        for (;;) __asm__ volatile ("cli; hlt");
+    }
+    serial_write("B06_KMALLOC_OK\n");
     if (!paging_init(hhdm_request.response->offset)) {
         serial_write("B06_PAGING_INIT_FAIL\n");
         for (;;) __asm__ volatile ("cli; hlt");
