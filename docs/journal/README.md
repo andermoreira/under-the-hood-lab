@@ -60,6 +60,12 @@ Veja [`_TEMPLATE.md`](_TEMPLATE.md).
 | B04 | — | ☐ | ☐ | ☐ |
 | B05 | — | ☐ | ☐ | ☐ |
 | B06 | — | ☐ | ☐ | ☐ |
+| B07 | — | ☐ | ☐ | ☐ |
+| B08 | — | ☐ | ☐ | ☐ |
+| B09 | — | ☐ | ☐ | ☐ |
+| B10 | — | ☐ | ☐ | ☐ |
+| B11 | — | ☐ | ☐ | ☐ |
+| B12 | — | ☐ | ☐ | ☐ |
 
 Preencha a coluna "Diário" com o link (ex.: `[B05](B05.md)`) quando criar o
 arquivo do módulo.

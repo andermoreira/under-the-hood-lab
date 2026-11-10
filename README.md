@@ -4,9 +4,11 @@ Laboratório educacional do bit ao sistema operacional.
 
 **Trilha A:** NAND → portas lógicas → ALU → memória → CPU Hack → assembler.
 
-**Trilha B:** boot x86-64 → kernel → interrupções → memória virtual → processos → filesystem → shell.
+**Trilha B:** boot x86-64 → kernel → interrupções → memória virtual → scheduler → ring 3 e syscalls → carregador ELF → disco e filesystem → shell.
 
 As trilhas são independentes: o kernel x86-64 não roda na CPU Hack.
+
+A trilha B atinge a "Definição de utilizável" do roadmap: inicia no QEMU, recebe comandos pelo shell, executa dois programas próprios em modo usuário, lê/grava arquivos persistentes e contém falhas de programas sem derrubar o kernel.
 
 ## Navegação pedagógica
 
@@ -38,6 +40,11 @@ Gate ENG = build e testes executados (local e CI). Gate LEARN = registro do estu
 | B01–B04 | toolchain, boot serial, GDT/IDT/#UD, PIT e teclado | PASS (QEMU na CI) | aberto |
 | B05 | alocador de frames físicos | PASS | aberto |
 | B06 | heap de páginas, kmalloc, PML4 própria, #PF | PASS | aberto |
-| B07–B12 | scheduler, ring 3, ELF, disco, shell, integração | não iniciado | — |
+| B07 | scheduler cooperativo round-robin (ring 0) | PASS (QEMU) | aberto |
+| B08 | ring 3, GDT/TSS, SYSCALL/SYSRET | PASS (QEMU) | aberto |
+| B09 | carregador ELF64 de programas de usuário | PASS (QEMU) | aberto |
+| B10 | disco ATA PIO e filesystem persistente | PASS (QEMU) | aberto |
+| B11 | shell do kernel (ls, cat, write, run) | PASS (QEMU) | aberto |
+| B12 | integração e contenção de falha de ring 3 | PASS (QEMU) | aberto |
 
 Achados das revisões técnica e pedagógica, e o que falta corrigir: [docs/REVIEW-2026-11.md](docs/REVIEW-2026-11.md).
