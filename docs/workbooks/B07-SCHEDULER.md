@@ -2,6 +2,45 @@
 
 **Não consulte o gabarito antes de tentar.**
 
+## Guia de fundamentos — leitura antes do PACTO
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F04–F08; não exige eletrônica prévia. **Objetivo:** explicar o mecanismo antes de pedir previsões avançadas.
+
+### Analogia do cotidiano
+Um jogador pausa um jogo e salva o progresso para continuar depois. Uma troca de contexto preserva o estado necessário de uma tarefa e retoma outra.
+
+**Onde a analogia falha:** A CPU não salva automaticamente todo estado em um arquivo; o código de troca de contexto segue a ABI, a pilha e o mecanismo de entrada/saída. Cooperativo não é preemptivo.
+
+### Mecanismo, passo a passo
+A pilha guarda endereços de retorno e dados locais. O ponteiro RSP salvo permite continuar a tarefa, mas o conjunto de registradores preservados depende da convenção de chamada e do ponto de troca.
+
+### Exemplo resolvido
+No round-robin cooperativo A, B, C, cada tarefa faz uma etapa e chama `yield`. A sequência de três rodadas é ABCABCABC.
+
+### Caso-limite e erro comum
+Se A nunca ceder a CPU, B e C podem não progredir. Um timer com preempção exige tratamento de contexto diferente de um `yield` voluntário.
+
+### Diagrama de fluxo
+```mermaid
+flowchart LR
+ A[Tarefa A] --> Y[yield]
+ Y --> S[Salvar contexto]
+ S --> B[Restaurar contexto B]
+ B --> R[Tarefa B]
+```
+
+O diagrama mostra relações conceituais; não comprova temporização, privilégios ou execução real.
+
+### Exercícios graduados
+1. **Recuperação:** Explique `yield`, contexto, pilha, ABI, round-robin e ausência de paralelismo em um núcleo.
+2. **Aplicação:** desenhe o fluxo do diagrama e anote o papel de cada etapa sem usar a analogia.
+3. **Transferência:** Como provar que uma tarefa que não cede bloqueia o escalonamento cooperativo sem depender apenas de um marcador?
+
+### Orientação de correção
+Uma resposta adequada deve nomear as estruturas técnicas, justificar cada transição e apresentar um contraexemplo. Compare sua solução com os exemplos e o código citado no laboratório; registre dúvidas em vez de declarar compreensão sem evidência.
+
+**Estado desta ampliação:** conteúdo editorial implementado; execução dos exemplos, teste com estudante iniciante e revisão independente **NOT_RUN**. As evidências históricas citadas no workbook original pertencem aos commits e ambientes ali identificados, não a esta alteração.
+
 ## 1. Fenômeno
 Um único núcleo executa uma instrução por vez, mas o kernel precisa manter várias tarefas "no ar" ao mesmo tempo. Como é possível pausar uma função no meio, rodar outra, e mais tarde voltar exatamente de onde a primeira parou, com as variáveis locais intactas?
 
