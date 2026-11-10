@@ -119,6 +119,16 @@ if ! grep -Fxq 'B05_PMM_ALLOC_FREE_OK' "$OUT/serial.log"; then
   cat "$OUT/serial.log" >&2
   exit 1
 fi
+if ! grep -Fxq 'B07_SCHEDULER_OK' "$OUT/serial.log"; then
+  echo 'FAIL: cooperative round-robin scheduler smoke test not observed' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
+if ! grep -Fxq 'B07_SCHEDULER_TRACE_ABCABCABC' "$OUT/serial.log"; then
+  echo 'FAIL: scheduler did not interleave tasks in deterministic round-robin order' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
 if ! grep -Fxq 'B04_TIMER_TICKS_OK' "$OUT/serial.log"; then
   echo 'FAIL: five PIT timer interrupts not observed' >&2
   cat "$OUT/serial.log" >&2

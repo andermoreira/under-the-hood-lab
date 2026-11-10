@@ -100,6 +100,37 @@ extern uint64_t pmm_free_count(void);
 extern void interrupts_init(void);
 extern void devices_init(void);
 extern uint64_t timer_ticks(void);
+extern void scheduler_init(void);
+extern int scheduler_spawn(void (*entry)(void *), void *arg);
+extern void scheduler_yield(void);
+extern unsigned scheduler_run(void);
+
+/* B07 scheduler smoke test: three ring-0 tasks append their id to a shared
+ * trace on each turn, yielding between turns. Cooperative round-robin must
+ * interleave them deterministically and let each run to completion. */
+#define B07_TRACE_CAP 32
+static char b07_trace[B07_TRACE_CAP + 1];
+static unsigned b07_trace_len;
+static void b07_task(void *arg) {
+    char id = (char)(uintptr_t)arg;
+    for (unsigned turn = 0; turn < 3; ++turn) {
+        if (b07_trace_len < B07_TRACE_CAP) b07_trace[b07_trace_len++] = id;
+        scheduler_yield();
+    }
+}
+static int scheduler_selftest(void) {
+    scheduler_init();
+    if (scheduler_spawn(b07_task, (void *)(uintptr_t)'A') < 0) return 0;
+    if (scheduler_spawn(b07_task, (void *)(uintptr_t)'B') < 0) return 0;
+    if (scheduler_spawn(b07_task, (void *)(uintptr_t)'C') < 0) return 0;
+    unsigned completed = scheduler_run();
+    b07_trace[b07_trace_len] = 0;
+    /* Three tasks, three turns each, round-robin starting at A. */
+    const char *expected = "ABCABCABC";
+    for (unsigned i = 0; expected[i]; ++i)
+        if (b07_trace[i] != expected[i]) return 0;
+    return completed == 3 && b07_trace_len == 9;
+}
 
 __attribute__((noreturn))
 void kmain(void) {
@@ -198,6 +229,14 @@ void kmain(void) {
     }
     serial_write("B06_PAGING_REUSE_OK\n");
     serial_write("B06_PAGING_MAP_UNMAP_OK\n");
+    if (!scheduler_selftest()) {
+        serial_write("B07_SCHEDULER_FAIL\n");
+        for (;;) __asm__ volatile ("cli; hlt");
+    }
+    serial_write("B07_SCHEDULER_TRACE_");
+    serial_write(b07_trace);
+    serial_write("\n");
+    serial_write("B07_SCHEDULER_OK\n");
     devices_init();
     while (timer_ticks() < 5) __asm__ volatile ("hlt");
     serial_write("B04_TIMER_TICKS_OK\n");

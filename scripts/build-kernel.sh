@@ -22,8 +22,10 @@ fi
 "$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -march=x86-64 -mtune=generic -mno-bmi2 -mgeneral-regs-only -c "$ROOT/kernel/x86_64/heap.c" -o "$OUT/heap.o"
 "$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -march=x86-64 -mtune=generic -mno-bmi2 -mgeneral-regs-only -c "$ROOT/kernel/x86_64/kmalloc.c" -o "$OUT/kmalloc.o"
 "$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -march=x86-64 -mtune=generic -mno-bmi2 -mgeneral-regs-only -c "$ROOT/kernel/x86_64/paging.c" -o "$OUT/paging.o"
+"$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -march=x86-64 -mtune=generic -mno-bmi2 -mgeneral-regs-only -c "$ROOT/kernel/x86_64/scheduler.c" -o "$OUT/scheduler.o"
 "$CC" -m64 -c "$ROOT/kernel/x86_64/interrupts.S" -o "$OUT/interrupts_asm.o"
-"$LD" -nostdlib -static -z max-page-size=0x1000 -T "$ROOT/kernel/x86_64/linker.ld" "$OUT/main.o" "$OUT/interrupts.o" "$OUT/devices.o" "$OUT/pmm.o" "$OUT/heap.o" "$OUT/kmalloc.o" "$OUT/paging.o" "$OUT/interrupts_asm.o" -o "$OUT/kernel.elf"
+"$CC" -m64 -c "$ROOT/kernel/x86_64/switch.S" -o "$OUT/switch_asm.o"
+"$LD" -nostdlib -static -z max-page-size=0x1000 -T "$ROOT/kernel/x86_64/linker.ld" "$OUT/main.o" "$OUT/interrupts.o" "$OUT/devices.o" "$OUT/pmm.o" "$OUT/heap.o" "$OUT/kmalloc.o" "$OUT/paging.o" "$OUT/scheduler.o" "$OUT/interrupts_asm.o" "$OUT/switch_asm.o" -o "$OUT/kernel.elf"
 "$READELF" -h "$OUT/kernel.elf" | grep -q 'Machine:.*Advanced Micro Devices X86-64'
 "$READELF" -h "$OUT/kernel.elf" | grep -q 'Type:.*EXEC'
 "$READELF" -h "$OUT/kernel.elf" | grep -q 'Entry point address:'
