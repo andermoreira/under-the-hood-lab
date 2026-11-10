@@ -8,6 +8,12 @@ Memória é um conjunto de posições endereçáveis. Um endereço é um identif
 ## 2. Conceitos construídos passo a passo
 Se cada posição guarda um byte, os endereços 0x1000 e 0x1001 apontam para bytes vizinhos. Uma página de 4096 bytes iniciada em 0x1000 cobre 0x1000 até 0x1FFF inclusive. A página seguinte começa em 0x2000.
 
+## Analogia com o mundo real
+A memória é como um prédio de armários numerados: o endereço identifica um armário, e o conteúdo é o objeto guardado. Uma página é um conjunto de armários agrupados em blocos de tamanho fixo. Um mapa de endereços virtuais se parece com um catálogo que aponta para armários físicos.
+
+### Onde a analogia deixa de funcionar
+Endereços não são objetos materiais, e páginas podem ter permissões diferentes, estar ausentes ou ser compartilhadas. O catálogo não explica automaticamente cache, TLB, fragmentação ou proteção contra acessos indevidos.
+
 ## 3. Exemplo resolvido
 O gerenciador de memória física (PMM) controla blocos de memória física, frequentemente chamados frames. O gerenciador de memória virtual cria mapeamentos de páginas virtuais para frames físicos. Endereço virtual não é automaticamente endereço físico; a tradução depende das tabelas de páginas e das permissões.
 
