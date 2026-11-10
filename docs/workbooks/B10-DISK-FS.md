@@ -2,6 +2,45 @@
 
 **Não consulte o gabarito antes de tentar.**
 
+## Guia de fundamentos — leitura antes do PACTO
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F04–F08; não exige eletrônica prévia. **Objetivo:** explicar o mecanismo antes de pedir previsões avançadas.
+
+### Analogia do cotidiano
+Um depósito usa caixas numeradas (setores) e um catálogo para descobrir onde estão os objetos (arquivos).
+
+**Onde a analogia falha:** O catálogo também ocupa setores, e uma escrita pode ser interrompida. Relê-lo na mesma execução não prova persistência após reinício.
+
+### Mecanismo, passo a passo
+O sistema de arquivos organiza nomes, tamanhos e localização de dados. Um número mágico ajuda a reconhecer o formato, mas não autentica a origem nem garante integridade.
+
+### Exemplo resolvido
+ATA PIO transfere setores; um setor de 512 bytes contém 256 palavras de 16 bits. O driver espera estados do dispositivo antes de ler ou escrever.
+
+### Caso-limite e erro comum
+Um teste de escrita e releitura no mesmo boot pode passar mesmo sem comprovar sobrevivência a novo boot. É necessário reabrir a mesma imagem em outra inicialização.
+
+### Diagrama de fluxo
+```mermaid
+flowchart LR
+ CMD[Pedido de arquivo] --> FS[Sistema de arquivos]
+ FS --> DIR[Diretório]
+ DIR --> LBA[Setores LBA]
+ LBA --> ATA[Driver ATA]
+```
+
+O diagrama mostra relações conceituais; não comprova temporização, privilégios ou execução real.
+
+### Exercícios graduados
+1. **Recuperação:** Explique setor, LBA, superbloco, diretório e dados; diferencie persistência de cache.
+2. **Aplicação:** desenhe o fluxo do diagrama e anote o papel de cada etapa sem usar a analogia.
+3. **Transferência:** Projete um teste em duas inicializações que grave um marcador e confirme sua leitura após reiniciar.
+
+### Orientação de correção
+Uma resposta adequada deve nomear as estruturas técnicas, justificar cada transição e apresentar um contraexemplo. Compare sua solução com os exemplos e o código citado no laboratório; registre dúvidas em vez de declarar compreensão sem evidência.
+
+**Estado desta ampliação:** conteúdo editorial implementado; execução dos exemplos, teste com estudante iniciante e revisão independente **NOT_RUN**. As evidências históricas citadas no workbook original pertencem aos commits e ambientes ali identificados, não a esta alteração.
+
 ## 1. Fenômeno
 A RAM é apagada ao desligar, mas um arquivo salvo continua lá na próxima vez. Como o kernel conversa com um disco (que fala em "setores", não em "arquivos") e, em cima desses setores crus, cria a ilusão de arquivos com nome e conteúdo que persistem?
 
