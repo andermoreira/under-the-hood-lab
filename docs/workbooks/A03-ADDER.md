@@ -3,6 +3,18 @@
 
 **Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F02–F05. Este capítulo pressupõe programação básica, não eletrônica.
 
+## Mapa visual do conceito
+
+```mermaid
+flowchart LR
+ C0[carry inicial 0] --> F0[FullAdder bit 0]
+ F0 -->|carry| F1[FullAdder bit 1]
+ F1 -->|carry| FN[Demais bits até 15]
+ FN --> CF[carry final]
+```
+
+**Leitura:** acompanhe as setas; o desenho abstrai detalhes elétricos e temporais.
+
 ## Fundamento: como o vai-um percorre uma palavra
 
 Uma **palavra** é um grupo de bits tratado como unidade pela arquitetura. Neste circuito, a palavra tem 16 bits. Um somador de 16 bits encadeia 16 FullAdders: cada posição recebe os bits `a[i]`, `b[i]` e o carry da posição anterior. O carry inicial é zero.
