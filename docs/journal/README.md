@@ -44,28 +44,33 @@ Veja [`_TEMPLATE.md`](_TEMPLATE.md).
 
 ## Índice de módulos
 
+Os arquivos de diário por módulo já existem (criados a partir do
+[`_TEMPLATE.md`](_TEMPLATE.md), com datas de revisão pré-calculadas e **todo o
+conteúdo em branco**). As três colunas de estado abaixo são o Gate LEARN em si:
+marque cada `☐` quando **você** as cumprir. A IA não as marca por você.
+
 | Módulo | Diário | Previsão feita | Rubrica ≥2 em tudo | Revisões 1/7/30 |
 |---|---|---|---|---|
-| A01 | — | ☐ | ☐ | ☐ |
-| A02 | — | ☐ | ☐ | ☐ |
-| A03 | — | ☐ | ☐ | ☐ |
-| A04 | — | ☐ | ☐ | ☐ |
-| A05 | — | ☐ | ☐ | ☐ |
-| A06 | — | ☐ | ☐ | ☐ |
-| A07 | — | ☐ | ☐ | ☐ |
-| A08 | — | ☐ | ☐ | ☐ |
-| B01 | — | ☐ | ☐ | ☐ |
-| B02 | — | ☐ | ☐ | ☐ |
-| B03 | — | ☐ | ☐ | ☐ |
-| B04 | — | ☐ | ☐ | ☐ |
-| B05 | — | ☐ | ☐ | ☐ |
-| B06 | — | ☐ | ☐ | ☐ |
-| B07 | — | ☐ | ☐ | ☐ |
-| B08 | — | ☐ | ☐ | ☐ |
-| B09 | — | ☐ | ☐ | ☐ |
-| B10 | — | ☐ | ☐ | ☐ |
-| B11 | — | ☐ | ☐ | ☐ |
-| B12 | — | ☐ | ☐ | ☐ |
+| A01 | [A01](A01.md) | ☐ | ☐ | ☐ |
+| A02 | [A02](A02.md) | ☐ | ☐ | ☐ |
+| A03 | [A03](A03.md) | ☐ | ☐ | ☐ |
+| A04 | [A04](A04.md) | ☐ | ☐ | ☐ |
+| A05 | [A05](A05.md) | ☐ | ☐ | ☐ |
+| A06 | [A06](A06.md) | ☐ | ☐ | ☐ |
+| A07 | [A07](A07.md) | ☐ | ☐ | ☐ |
+| A08 | [A08](A08.md) | ☐ | ☐ | ☐ |
+| B01 | [B01](B01.md) | ☐ | ☐ | ☐ |
+| B02 | [B02](B02.md) | ☐ | ☐ | ☐ |
+| B03 | [B03](B03.md) | ☐ | ☐ | ☐ |
+| B04 | [B04](B04.md) | ☐ | ☐ | ☐ |
+| B05 | [B05](B05.md) | ☐ | ☐ | ☐ |
+| B06 | [B06](B06.md) | ☐ | ☐ | ☐ |
+| B07 | [B07](B07.md) | ☐ | ☐ | ☐ |
+| B08 | [B08](B08.md) | ☐ | ☐ | ☐ |
+| B09 | [B09](B09.md) | ☐ | ☐ | ☐ |
+| B10 | [B10](B10.md) | ☐ | ☐ | ☐ |
+| B11 | [B11](B11.md) | ☐ | ☐ | ☐ |
+| B12 | [B12](B12.md) | ☐ | ☐ | ☐ |
 
-Preencha a coluna "Diário" com o link (ex.: `[B05](B05.md)`) quando criar o
-arquivo do módulo.
+Sugestão de ordem (da `REVIEW-2026-11`): comece pelo B05, depois percorra o
+resto; a IA corrige e dá pistas, não responde.
