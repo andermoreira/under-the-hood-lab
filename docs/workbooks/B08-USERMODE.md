@@ -2,6 +2,45 @@
 
 **Não consulte o gabarito antes de tentar.**
 
+## Guia de fundamentos — leitura antes do PACTO
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F04–F08; não exige eletrônica prévia. **Objetivo:** explicar o mecanismo antes de pedir previsões avançadas.
+
+### Analogia do cotidiano
+Num restaurante, clientes pedem serviços à cozinha em vez de operar equipamentos restritos. Uma syscall solicita ao kernel um serviço privilegiado.
+
+**Onde a analogia falha:** A transição é executada pela CPU; não existe um garçom independente. `syscall` não troca automaticamente para uma pilha segura em x86-64: o código de entrada precisa cuidar disso.
+
+### Mecanismo, passo a passo
+A instrução `syscall` transfere controle ao handler configurado em MSRs. Em x86-64, RCX e R11 guardam valores necessários ao retorno; a entrada precisa tratar pilha e registradores cuidadosamente.
+
+### Exemplo resolvido
+Ring 0 é privilégio de kernel; ring 3 é usuário. Páginas marcadas como supervisor não podem ser acessadas em ring 3. As permissões são verificadas pelo hardware.
+
+### Caso-limite e erro comum
+Um ponteiro de usuário pode ser inválido, não mapeado ou apontar para região protegida. O kernel deve validar acesso e comprimento antes de ler bytes.
+
+### Diagrama de fluxo
+```mermaid
+flowchart LR
+ U[Ring 3] --> SC[syscall]
+ SC --> V[Kernel valida]
+ V --> D[Serviço]
+ D --> RET[Retorno a ring 3]
+```
+
+O diagrama mostra relações conceituais; não comprova temporização, privilégios ou execução real.
+
+### Exercícios graduados
+1. **Recuperação:** Explique ring 0, ring 3, bit U/S, MSR, syscall e validação de ponteiros. Por que uma syscall não significa confiança no chamador?
+2. **Aplicação:** desenhe o fluxo do diagrama e anote o papel de cada etapa sem usar a analogia.
+3. **Transferência:** Desenhe um pedido de escrita válido e um inválido, indicando o ponto da rejeição.
+
+### Orientação de correção
+Uma resposta adequada deve nomear as estruturas técnicas, justificar cada transição e apresentar um contraexemplo. Compare sua solução com os exemplos e o código citado no laboratório; registre dúvidas em vez de declarar compreensão sem evidência.
+
+**Estado desta ampliação:** conteúdo editorial implementado; execução dos exemplos, teste com estudante iniciante e revisão independente **NOT_RUN**. As evidências históricas citadas no workbook original pertencem aos commits e ambientes ali identificados, não a esta alteração.
+
 ## 1. Fenômeno
 Um programa de usuário não pode acessar diretamente a porta serial nem as estruturas do kernel, mas ainda assim consegue imprimir na tela. Como o processador separa "código privilegiado" (kernel, ring 0) de "código comum" (usuário, ring 3), e como um programa comum pede um favor ao kernel sem poder tocar no hardware?
 
