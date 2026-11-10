@@ -3,6 +3,19 @@
 
 **Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F02–F05. Este capítulo pressupõe programação básica, não eletrônica.
 
+## Mapa visual do conceito
+
+```mermaid
+flowchart LR
+ I[Entrada] --> M[MUX]
+ E[Estado anterior] --> M
+ L[load] --> M
+ M --> D[DFF captura no clock]
+ D --> E
+```
+
+**Leitura:** acompanhe as setas; o desenho abstrai detalhes elétricos e temporais.
+
 ## Fundamento: o que significa guardar um bit?
 
 Uma porta combinacional calcula a partir das entradas atuais; um **elemento de estado** preserva informação entre instantes. O DFF (flip-flop tipo D) captura um valor na transição definida de relógio do modelo. Um **registrador** combina vários elementos de estado; um MUX pode decidir se a próxima atualização recebe o novo valor ou conserva o anterior.
