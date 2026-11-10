@@ -2,6 +2,21 @@
 
 **Público:** sabe programar, não conhece eletrônica. **Pré-requisito:** [F04-ESTADO-CPU ](F04-ESTADO-CPU.md). **Tempo sugerido:** 60–100 minutos.
 
+## Mapa visual do conceito
+
+```mermaid
+flowchart LR
+ S["Código-fonte"] --> C["Compilador"]
+ C --> A["Assembly"]
+ A --> AS["Assembler"]
+ AS --> O["Código objeto"]
+ O --> L["Linker"]
+ L --> E["Executável"]
+ E --> CPU["CPU executa instruções da sua ISA"]
+```
+
+**Como ler:** siga as setas para identificar entradas, transformações e saídas. Este é um modelo didático, não um diagrama elétrico nem uma prova de temporização.
+
 ## 1. Problema concreto
 O processador não executa diretamente palavras como `while` ou `print`. Ele executa instruções codificadas como bits, segundo um conjunto de instruções (ISA). Assembly é uma representação textual próxima dessas instruções; um assembler transforma símbolos e mnemônicos em código de máquina.
 
