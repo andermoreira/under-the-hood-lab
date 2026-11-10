@@ -8,6 +8,12 @@ Uma porta recebe sinais binários e calcula uma saída. Um circuito combinaciona
 ## 2. Conceitos construídos passo a passo
 Um circuito que acende um aviso quando A=1 e B=0 pode ser descrito por `A AND NOT B`. Construa NOT(B) com `NAND(B,B)` e AND com duas NAND. A ordem das conexões importa para o funcionamento lógico, mas o modelo ideal não descreve atrasos elétricos.
 
+## Analogia com o mundo real
+Uma porta lógica funciona como uma regra de acesso a uma sala: duas autorizações (A e B) são necessárias para entrar (AND). NAND inverte a decisão: o aviso fica ligado exceto quando ambas as autorizações estão presentes.
+
+### Onde a analogia deixa de funcionar
+Pessoas, portas físicas e sensores podem atrasar, falhar ou interpretar situações ambíguas. Uma porta lógica ideal tem entradas binárias bem definidas; a analogia não explica eletricidade nem atrasos de propagação.
+
 ## 3. Exemplo resolvido
 Se A=1 e B=0, NOT B=1, então aviso=1. Se B mudar para 1, aviso=0. Liste também os outros dois pares de entrada. Isso é uma tabela-verdade completa.
 
