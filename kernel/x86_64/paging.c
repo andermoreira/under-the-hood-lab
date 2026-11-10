@@ -159,21 +159,28 @@ int paging_unmap_test_page(void) {
     }
     unsigned leaf = (unsigned)((TEST_VIRTUAL >> 12) & 511);
     if (!(table[leaf] & PRESENT) || (table[leaf] & ADDRESS_MASK) != mapped_frame) return 0;
+    uint64_t leaf_frame = mapped_frame;
     table[leaf] = 0;
     __asm__ volatile ("invlpg (%0)" : : "r"((uintptr_t)TEST_VIRTUAL) : "memory");
-    if (!pmm_free(mapped_frame)) return 0;
+    /* The PTE is gone and the TLB is flushed: the page is no longer mapped,
+     * so clear the bookkeeping before any further step can fail and leave
+     * mapped_frame pointing at a frame that is no longer reachable. */
     mapped_frame = UINT64_MAX;
+    if (!pmm_free(leaf_frame)) return 0;
     for (int level = 2; level >= 0; --level) {
         uint64_t frame = child_frames[level];
-        int owned = 0;
+        unsigned slot = owned_table_count;
         for (unsigned i = 0; i < owned_table_count; ++i) {
-            if (owned_table_frames[i] == frame) owned = 1;
+            if (owned_table_frames[i] == frame) { slot = i; break; }
         }
-        if (!owned || !table_empty(table_at(frame))) break;
+        if (slot == owned_table_count || !table_empty(table_at(frame))) break;
         parents[level][indices[level]] = 0;
         __asm__ volatile ("invlpg (%0)" : : "r"((uintptr_t)TEST_VIRTUAL) : "memory");
+        /* Drop this frame from the ownership record first: whether or not the
+         * PMM accepts it back, the module no longer owns the unlinked table. */
+        owned_table_frames[slot] = owned_table_frames[owned_table_count - 1];
+        --owned_table_count;
         if (!pmm_free(frame)) return 0;
     }
-    owned_table_count = 0;
     return 1;
 }

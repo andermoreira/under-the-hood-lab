@@ -32,10 +32,20 @@ class HackAssemblerTests(unittest.TestCase):
 
     def test_reject_bad_input(self):
         for source in ("@32768", "@-1", "@", "(LOOP)\n(LOOP)", "(R0)", "D=Q", "D;BAD",
-                       "AA=D", "D==M", "(invalid name)", "D=A;JMP;JMP"):
+                       "AA=D", "D==M", "(invalid name)", "D=A;JMP;JMP", "=D", "D;"):
             with self.subTest(source=source):
                 with self.assertRaises(AssemblyError):
                     assemble(source)
+
+    def test_last_variable_before_screen_is_accepted(self):
+        # Variables occupy 16..16383; the 16368th distinct variable lands on 16383.
+        source = "".join(f"@v{i}\n" for i in range(16384 - 16))
+        self.assertEqual(assemble(source).splitlines()[-1], f"{16383:016b}")
+
+    def test_variable_collision_with_screen_is_rejected(self):
+        source = "".join(f"@v{i}\n" for i in range(16384 - 16 + 1))
+        with self.assertRaisesRegex(AssemblyError, "SCREEN"):
+            assemble(source)
 
     def test_line_numbers(self):
         with self.assertRaisesRegex(AssemblyError, "line 3"):

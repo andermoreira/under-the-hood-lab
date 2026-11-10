@@ -14,6 +14,7 @@ As trilhas são independentes: o kernel x86-64 não roda na CPU Hack.
 - [Glossário com analogias e experimentos](docs/GLOSSARIO.md)
 - [Guia para iniciantes](docs/INICIANTE.md)
 - [Workbook A01](docs/workbooks/A01.md)
+- [Diário de aprendizagem (Gate LEARN)](docs/journal/README.md)
 
 ## Início rápido
 
@@ -23,9 +24,9 @@ make test
 
 O primeiro gate valida o modelo booleano em Python; não substitui testes HDL. Consulte `docs/PEDAGOGY.md`, `docs/ROADMAP.md` e `experiments/hardware/EXP-A01.md`.
 
-## Estado (2026-11-08, `main` @ 4f4b94d)
+## Estado (2026-11-10, `main` @ a3eaf88 + dívida técnica fechada)
 
-Gate ENG = build e testes executados (local e CI). Gate LEARN = registro do estudante (previsão, rubrica, revisões); **ainda não exercido em nenhum módulo**.
+Gate ENG = build e testes executados (local e CI). Gate LEARN = registro do estudante (previsão, rubrica, revisões); o diário já existe em [docs/journal/](docs/journal/README.md), mas **ainda não foi exercido em nenhum módulo**.
 
 | Módulo | Conteúdo | ENG | LEARN |
 |---|---|---|---|

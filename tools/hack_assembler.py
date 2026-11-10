@@ -53,8 +53,10 @@ def assemble(source: str) -> str:
                     raise AssemblyError(f"line {number}: A-instruction outside 0..32767")
             elif SYMBOL.fullmatch(value):
                 if value not in symbols:
-                    if next_variable > 32767:
-                        raise AssemblyError(f"line {number}: variable space exhausted")
+                    if next_variable >= 16384:
+                        raise AssemblyError(
+                            f"line {number}: variable space exhausted "
+                            f"(would collide with SCREEN at 16384)")
                     symbols[value] = next_variable
                     next_variable += 1
                 address = symbols[value]
@@ -65,9 +67,13 @@ def assemble(source: str) -> str:
         if line.count("=") > 1 or line.count(";") > 1:
             raise AssemblyError(f"line {number}: malformed C-instruction {line}")
         dest, sep, rest = line.partition("=")
+        if sep and not dest:
+            raise AssemblyError(f"line {number}: empty dest before '=' in {line}")
         if not sep:
             dest, rest = "", dest
         comp, semi, jump = rest.partition(";")
+        if semi and not jump:
+            raise AssemblyError(f"line {number}: empty jump after ';' in {line}")
         if not semi:
             jump = ""
         comp = COMMUTATIVE.get(comp, comp)
