@@ -2,6 +2,19 @@
 
 **Pré-requisito:** [F01](F01-BITS-BYTES.md) e condicionais de programação. **Tempo sugerido:** 45–75 minutos.
 
+## Mapa visual do conceito
+
+```mermaid
+flowchart LR
+ A["Entrada A"] --> N1["NAND(A,A) = NOT A"]
+ B["Entrada B"] --> N2["NAND(B,B) = NOT B"]
+ N1 --> N3["NAND"]
+ N2 --> N3
+ N3 --> O["A OR B"]
+```
+
+**Como ler:** siga as setas para identificar entradas, transformações e saídas. Este é um modelo didático, não um diagrama elétrico nem uma prova de temporização.
+
 ## Do if ao circuito
 Em programação, `if (a && b)` só entra no bloco se as duas condições forem verdadeiras. A lógica digital descreve operações semelhantes, mas sobre sinais binários. **AND** dá 1 apenas se ambas as entradas forem 1. **OR** dá 1 se ao menos uma entrada for 1. **NOT** inverte um bit.
 
