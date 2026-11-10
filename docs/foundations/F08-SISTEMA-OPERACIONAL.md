@@ -1,6 +1,6 @@
 # F08 — Por que um sistema operacional existe?
 
-**Público:** sabe programar, não conhece eletrônica. **Pré-requisito:** [F06-ENDERECOS-MEMORIA ](F06-ENDERECOS-MEMORIA.md). **Tempo sugerido:** 60–100 minutos.
+**Público:** sabe programar, não conhece eletrônica. **Pré-requisito:** [F06 — endereços e memória](F06-ENDERECOS-MEMORIA.md) e [F07 — boot](F07-BOOT.md). **Tempo sugerido:** 60–100 minutos.
 
 ## 1. Problema concreto
 Dois programas querem usar CPU, memória e dispositivos. Sem regras de isolamento, um pode sobrescrever dados do outro ou controlar hardware arbitrariamente. Um sistema operacional fornece mecanismos de execução, proteção e acesso mediado a recursos.
