@@ -3,6 +3,22 @@
 
 **Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F02–F05. Este capítulo pressupõe programação básica, não eletrônica.
 
+## Mapa visual do conceito
+
+```mermaid
+flowchart LR
+ X[x] --> PX[zx e nx]
+ Y[y] --> PY[zy e ny]
+ PX --> OP[f escolhe AND ou ADD]
+ PY --> OP
+ OP --> NO[no pode inverter]
+ NO --> OUT[out]
+ OUT --> ZR[zr: saída zero]
+ OUT --> NG[ng: bit 15]
+```
+
+**Leitura:** acompanhe as setas; o desenho abstrai detalhes elétricos e temporais.
+
 ## Fundamento: uma calculadora configurável
 
 **ALU** significa unidade lógica e aritmética. Ela recebe operandos `x` e `y`, sinais de controle e produz `out` e flags. A ALU Hack usa seis bits de controle: `zx` zera x, `nx` inverte x, `zy` zera y, `ny` inverte y, `f` seleciona AND (0) ou soma (1), e `no` inverte a saída. A ordem dessas transformações é parte da especificação.
