@@ -8,6 +8,12 @@ Dois programas querem usar CPU, memória e dispositivos. Sem regras de isolament
 ## 2. Conceitos construídos passo a passo
 Um processo é uma instância de programa em execução com estado e recursos associados. O escalonador escolhe qual tarefa pode usar a CPU. Memória virtual ajuda a separar espaços de endereços. Uma chamada de sistema (syscall) é um mecanismo controlado para solicitar serviços privilegiados.
 
+## Analogia com o mundo real
+O sistema operacional se parece com a administração de um prédio compartilhado: organiza o uso de salas (memória), decide quem utiliza recursos comuns (CPU/dispositivos) e oferece um balcão para solicitações (syscalls). O shell se parece com uma recepção por onde usuários enviam pedidos.
+
+### Onde a analogia deixa de funcionar
+O kernel não é uma pessoa que verifica tudo manualmente; a CPU impõe parte das proteções. A analogia não garante isolamento perfeito, não representa todas as interfaces e não deve confundir shell com kernel.
+
 ## 3. Exemplo resolvido
 Exemplo resolvido: um programa quer escrever na saída. Em vez de acessar diretamente o dispositivo, solicita ao kernel uma operação de escrita. O kernel valida parâmetros e executa a ação permitida. Isso não garante segurança automaticamente: a implementação da validação é essencial.
 
