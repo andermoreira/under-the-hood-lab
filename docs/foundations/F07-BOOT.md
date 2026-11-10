@@ -2,6 +2,18 @@
 
 **Público:** sabe programar, não conhece eletrônica. **Pré-requisito:** [F05-CODIGO-MAQUINA ](F05-CODIGO-MAQUINA.md). **Tempo sugerido:** 60–100 minutos.
 
+## Mapa visual do conceito
+
+```mermaid
+flowchart LR
+ FW["Firmware"] --> BL["Bootloader Limine"]
+ BL --> ELF["Carrega segmentos ELF"]
+ ELF --> K["Entry point do kernel"]
+ K --> INIT["Inicialização de memória e dispositivos"]
+```
+
+**Como ler:** siga as setas para identificar entradas, transformações e saídas. Este é um modelo didático, não um diagrama elétrico nem uma prova de temporização.
+
 ## 1. Problema concreto
 O processador precisa começar a executar instruções em algum ponto. O firmware inicializa componentes e seleciona um caminho de inicialização; um bootloader prepara o ambiente e transfere o controle para um kernel.
 
