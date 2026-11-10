@@ -2,6 +2,18 @@
 
 **Público:** sabe programar, não conhece eletrônica. **Pré-requisito:** [F03-PORTAS-CIRCUITOS ](F03-PORTAS-CIRCUITOS.md). **Tempo sugerido:** 60–100 minutos.
 
+## Mapa visual do conceito
+
+```mermaid
+flowchart LR
+ R["Registrador: estado atual"] --> ALU["ALU: calcula próximo valor"]
+ ALU --> M["MUX: manter ou atualizar"]
+ M --> CLK["Captura no clock"]
+ CLK --> R
+```
+
+**Como ler:** siga as setas para identificar entradas, transformações e saídas. Este é um modelo didático, não um diagrama elétrico nem uma prova de temporização.
+
 ## 1. Problema concreto
 Um circuito combinacional não lembra o que aconteceu antes. Para contar eventos precisamos de estado: informação que persiste entre instantes de observação. Um registrador guarda bits e pode atualizá-los conforme um sinal de controle e um relógio lógico.
 
