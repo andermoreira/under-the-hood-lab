@@ -1,5 +1,47 @@
 # A03 — Como 16 bits conseguem somar?
 
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F02–F05. Este capítulo pressupõe programação básica, não eletrônica.
+
+## Mapa visual do conceito
+
+```mermaid
+flowchart LR
+ C0[carry inicial 0] --> F0[FullAdder bit 0]
+ F0 -->|carry| F1[FullAdder bit 1]
+ F1 -->|carry| FN[Demais bits até 15]
+ FN --> CF[carry final]
+```
+
+**Leitura:** acompanhe as setas; o desenho abstrai detalhes elétricos e temporais.
+
+## Fundamento: como o vai-um percorre uma palavra
+
+Uma **palavra** é um grupo de bits tratado como unidade pela arquitetura. Neste circuito, a palavra tem 16 bits. Um somador de 16 bits encadeia 16 FullAdders: cada posição recebe os bits `a[i]`, `b[i]` e o carry da posição anterior. O carry inicial é zero.
+
+**Analogia:** ao somar 099 + 001 no papel, você soma cada coluna e transporta o excedente para a próxima. **Limite:** no circuito os sinais percorrem conexões, não há uma pessoa avançando coluna por coluna; a propagação pode produzir atraso.
+
+**Exemplo resolvido:** `0x00FF + 0x0001 = 0x0100`. Os oito bits inferiores de 0xFF são 1; adicionar 1 zera esses oito bits e transporta 1 ao nono bit.
+
+**Exemplo de fronteira:** `0xFFFF + 0x0001 = 0x0000` em 16 bits, com carry final 1. Isso é aritmética **módulo 2¹⁶**: o resultado armazena apenas os 16 bits inferiores.
+
+**Carry não é overflow com sinal.** Interpretando 16 bits em complemento de dois, `0x7FFF` vale 32767. Somar 1 produz `0x8000`, interpretado como -32768: houve overflow com sinal, mas não carry final. Já `0xFFFF + 1` produz carry final 1 e não representa overflow com sinal (-1 + 1 = 0).
+
+**Experimento guiado:**
+```bash
+python3 - <<'PY'
+for a,b in [(0xff,1),(0xffff,1),(0x7fff,1),(0x8000,0x8000)]:
+    total=a+b
+    result=total & 0xffff
+    carry=int(total>0xffff)
+    signed=lambda n: n-0x10000 if n&0x8000 else n
+    overflow=int(not (-32768<=signed(a)+signed(b)<=32767))
+    print(hex(a),hex(b),hex(result),"carry",carry,"overflow",overflow)
+PY
+```
+Preveja as quatro linhas antes de executar. **Erro comum:** usar `carry` como sinônimo de overflow.
+
+
 ## Fenômeno
 Uma CPU com palavras de 16 bits precisa somar valores como 255 + 1 sem ter uma porta lógica especial para cada número.
 

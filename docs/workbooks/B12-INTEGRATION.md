@@ -2,6 +2,40 @@
 
 **Não consulte o gabarito antes de tentar.**
 
+## Guia de fundamentos — antes do PACTO
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F06–F08. **Objetivo:** compreender o mecanismo antes dos exercícios avançados.
+
+### Analogia real e limites
+Um prédio separa apartamentos; o problema de um morador não deveria destruir a estrutura inteira. **Onde falha:** O hardware detecta certas violações, mas o kernel precisa implementar a recuperação. Falhas do próprio kernel podem ser fatais.
+
+### Mecanismo
+O seletor CS salvo permite identificar o nível de privilégio anterior. Não é seguro simplesmente repetir a instrução que causou a falha.
+
+### Exemplo resolvido
+Uma tentativa inválida de acesso em ring 3 pode gerar #PF. O handler verifica o contexto salvo e pode encerrar somente o programa de usuário.
+
+### Caso-limite
+Um marcador de crash não prova recuperação; outro comando precisa funcionar depois.
+
+### Fluxo visual
+```mermaid
+flowchart TD
+ P[Programa ring 3] --> F[Page fault]
+ F --> C{Origem}
+ C -->|usuário| U[Conter falha]
+ C -->|kernel| K[Diagnóstico fatal]
+ U --> S[Shell continua]
+```
+
+### Exercícios graduados
+1. **Recuperação:** Explique CPL, #PF, handler e contexto salvo.
+2. **Aplicação:** reconstrua o fluxo do diagrama sem consultar.
+3. **Transferência:** Como provar continuidade após o crash sem depender só do marcador da falha?
+
+### Evidência
+**ENG/LEARN desta alteração: NOT_RUN.** As evidências históricas citadas abaixo não validam a revisão pedagógica atual. Registrar previsão, execução, resultado, commit e explicação independente.
+
 ## 1. Fenômeno
 Um sistema operacional de verdade não pode morrer porque um programa de usuário errou. Como o kernel deixa um programa quebrar (acessar memória que não é dele) e, em vez de travar a máquina, encerra só aquele programa e continua atendendo comandos?
 

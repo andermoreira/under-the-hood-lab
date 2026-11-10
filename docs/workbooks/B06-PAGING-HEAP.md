@@ -2,6 +2,46 @@
 
 **Não consulte o gabarito antes de tentar.**
 
+## Guia de fundamentos — leitura antes do PACTO
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F04–F08; não exige eletrônica prévia. **Objetivo:** explicar o mecanismo antes de pedir previsões avançadas.
+
+### Analogia do cotidiano
+Um índice de biblioteca indica em qual estante está um livro. Uma tabela de páginas associa páginas virtuais a frames físicos e permissões.
+
+**Onde a analogia falha:** A CPU usa caches de tradução (TLB); um índice alterado pode exigir invalidação. Uma entrada presente não garante que todo acesso seja permitido.
+
+### Mecanismo, passo a passo
+Uma leitura de endereço não mapeado causa #PF. CR2 registra o endereço associado à falha; o código de erro descreve aspectos do acesso.
+
+### Exemplo resolvido
+Em x86-64 de quatro níveis, o endereço virtual seleciona entradas PML4, PDPT, PD e PT; a entrada final aponta para frame físico, acrescido do deslocamento na página.
+
+### Caso-limite e erro comum
+Um heap do kernel oferece alocações de tamanho variável sobre páginas mapeadas. Alocar um frame e mapear uma página são operações distintas.
+
+### Diagrama de fluxo
+```mermaid
+flowchart LR
+ V[Endereço virtual] --> P[PML4]
+ P --> D[PDPT]
+ D --> PD[PD]
+ PD --> PT[PT]
+ PT --> F[Frame físico]
+```
+
+O diagrama mostra relações conceituais; não comprova temporização, privilégios ou execução real.
+
+### Exercícios graduados
+1. **Recuperação:** Diferencie frame, página virtual, PML4, CR3, TLB, #PF, heap. Por que atualizar tabela de páginas pode exigir `invlpg`?
+2. **Aplicação:** desenhe o fluxo do diagrama e anote o papel de cada etapa sem usar a analogia.
+3. **Transferência:** Como evitar que um mapeamento de usuário exponha uma página de supervisor? Descreva o teste negativo.
+
+### Orientação de correção
+Uma resposta adequada deve nomear as estruturas técnicas, justificar cada transição e apresentar um contraexemplo. Compare sua solução com os exemplos e o código citado no laboratório; registre dúvidas em vez de declarar compreensão sem evidência.
+
+**Estado desta ampliação:** conteúdo editorial implementado; execução dos exemplos, teste com estudante iniciante e revisão independente **NOT_RUN**. As evidências históricas citadas no workbook original pertencem aos commits e ambientes ali identificados, não a esta alteração.
+
 ## 1. Fenômeno
 O kernel usa endereços como `0xffffffff80001234`, mas a máquina tem só 128 MiB. Quem traduz esse endereço virtual para um físico e o que acontece quando não existe tradução?
 

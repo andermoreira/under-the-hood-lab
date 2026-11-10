@@ -2,6 +2,45 @@
 
 **Não consulte o gabarito antes de tentar.**
 
+## Guia de fundamentos — leitura antes do PACTO
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F04–F08; não exige eletrônica prévia. **Objetivo:** explicar o mecanismo antes de pedir previsões avançadas.
+
+### Analogia do cotidiano
+Uma caixa-preta de avião registra eventos para reconstruir o que aconteceu. O serial registra marcadores de execução do kernel.
+
+**Onde a analogia falha:** O serial não mede a correção de todo o kernel, pode perder informação e depende do driver e da emulação. Um marcador prova somente que um ponto foi alcançado.
+
+### Mecanismo, passo a passo
+A UART 16550 expõe registradores de E/S; COM1 usa portas em torno de 0x3F8 no ambiente emulado. Antes de transmitir, o código consulta o estado do transmissor.
+
+### Exemplo resolvido
+O firmware inicia a plataforma; Limine carrega o ELF e entrega controle ao entry point. O kernel configura UART e escreve caracteres que QEMU redireciona para um log.
+
+### Caso-limite e erro comum
+Se `KERNEL_READY` aparece, o caminho até o marcador foi executado. Se não aparece, a causa pode estar no boot, no UART ou na coleta do log.
+
+### Diagrama de fluxo
+```mermaid
+flowchart LR
+ F[Firmware] --> B[Limine]
+ B --> K[kmain]
+ K --> U[UART COM1]
+ U --> Q[QEMU serial log]
+```
+
+O diagrama mostra relações conceituais; não comprova temporização, privilégios ou execução real.
+
+### Exercícios graduados
+1. **Recuperação:** Por que `KERNEL_READY` não prova que a memória virtual está correta? Por que timeout é necessário em teste de kernel que não termina?
+2. **Aplicação:** desenhe o fluxo do diagrama e anote o papel de cada etapa sem usar a analogia.
+3. **Transferência:** Projete dois marcadores independentes para distinguir falha antes e depois da inicialização serial.
+
+### Orientação de correção
+Uma resposta adequada deve nomear as estruturas técnicas, justificar cada transição e apresentar um contraexemplo. Compare sua solução com os exemplos e o código citado no laboratório; registre dúvidas em vez de declarar compreensão sem evidência.
+
+**Estado desta ampliação:** conteúdo editorial implementado; execução dos exemplos, teste com estudante iniciante e revisão independente **NOT_RUN**. As evidências históricas citadas no workbook original pertencem aos commits e ambientes ali identificados, não a esta alteração.
+
 ## 1. Fenômeno
 O B01 produziu um ELF válido. Isso garante que o kernel inicializa? Ainda não sabemos se alguma instrução dele chegou a executar.
 

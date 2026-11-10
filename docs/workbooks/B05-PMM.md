@@ -2,6 +2,45 @@
 
 **Não consulte o gabarito antes de tentar.**
 
+## Guia de fundamentos — leitura antes do PACTO
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F04–F08; não exige eletrônica prévia. **Objetivo:** explicar o mecanismo antes de pedir previsões avançadas.
+
+### Analogia do cotidiano
+Um estacionamento possui vagas numeradas; algumas estão bloqueadas para manutenção. O alocador entrega somente vagas livres e marca cada uma como ocupada.
+
+**Onde a analogia falha:** Frames são blocos de bytes, não vagas reais; mapas de memória têm regiões sobrepostas, alinhamento e restrições de firmware. Reservar não equivale a inicializar os bytes.
+
+### Mecanismo, passo a passo
+Um bitmap pode representar o estado de cada frame: bit 1 ocupado/reservado, bit 0 livre, conforme a convenção adotada. Uma alocação marca o bit antes de devolver o endereço.
+
+### Exemplo resolvido
+Um frame de 4 KiB tem 4096 bytes. Para uma região [0x1800,0x4800), os frames completos começam em 0x2000 e 0x3000; as bordas parciais não devem ser entregues.
+
+### Caso-limite e erro comum
+Alocar o mesmo frame duas vezes permite corrupção entre consumidores. Um double free pode liberar memória que já foi reutilizada por outro componente.
+
+### Diagrama de fluxo
+```mermaid
+flowchart LR
+ M[Mapa físico] --> R[Reservar regiões proibidas]
+ R --> B[Bitmap de frames]
+ B --> A[Alocar frame livre]
+ A --> U[Marcar ocupado]
+```
+
+O diagrama mostra relações conceituais; não comprova temporização, privilégios ou execução real.
+
+### Exercícios graduados
+1. **Recuperação:** Por que o mapa do bootloader não pode ser tratado como 'toda RAM livre'? Como alinhar limites sem invadir regiões reservadas?
+2. **Aplicação:** desenhe o fluxo do diagrama e anote o papel de cada etapa sem usar a analogia.
+3. **Transferência:** Projete uma sequência alocar/liberar/alocar e um teste negativo que detecte devolução duplicada.
+
+### Orientação de correção
+Uma resposta adequada deve nomear as estruturas técnicas, justificar cada transição e apresentar um contraexemplo. Compare sua solução com os exemplos e o código citado no laboratório; registre dúvidas em vez de declarar compreensão sem evidência.
+
+**Estado desta ampliação:** conteúdo editorial implementado; execução dos exemplos, teste com estudante iniciante e revisão independente **NOT_RUN**. As evidências históricas citadas no workbook original pertencem aos commits e ambientes ali identificados, não a esta alteração.
+
 ## 1. Fenômeno
 A máquina tem 128 MiB de RAM, mas parte dela é do firmware, do kernel e do próprio bootloader. Como o kernel descobre quais páginas físicas de 4 KiB pode usar e entrega cada uma uma única vez?
 

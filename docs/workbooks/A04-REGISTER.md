@@ -1,5 +1,48 @@
 # A04 — O circuito que lembra
 
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F02–F05. Este capítulo pressupõe programação básica, não eletrônica.
+
+## Mapa visual do conceito
+
+```mermaid
+flowchart LR
+ I[Entrada] --> M[MUX]
+ E[Estado anterior] --> M
+ L[load] --> M
+ M --> D[DFF captura no clock]
+ D --> E
+```
+
+**Leitura:** acompanhe as setas; o desenho abstrai detalhes elétricos e temporais.
+
+## Fundamento: o que significa guardar um bit?
+
+Uma porta combinacional calcula a partir das entradas atuais; um **elemento de estado** preserva informação entre instantes. O DFF (flip-flop tipo D) captura um valor na transição definida de relógio do modelo. Um **registrador** combina vários elementos de estado; um MUX pode decidir se a próxima atualização recebe o novo valor ou conserva o anterior.
+
+**Analogia:** um quadro de avisos só é substituído quando chega uma autorização de atualização. **Limite:** um registrador é volátil e seu comportamento depende de eventos de relógio; não é uma anotação permanente.
+
+**Exemplo resolvido:** estado inicial 0, entrada 1, `load=1`: depois da atualização, estado 1. Em seguida, entrada 0, `load=0`: depois da atualização, estado **continua 1**. Só com `load=1` o novo zero será capturado.
+
+| Estado anterior | in | load | Próximo estado |
+|---|---|---|---|
+| 0 | 1 | 0 | 0 |
+| 0 | 1 | 1 | 1 |
+| 1 | 0 | 0 | 1 |
+| 1 | 0 | 1 | 0 |
+
+**Experimento independente:**
+```bash
+python3 - <<'PY'
+state=0
+for value,load in [(1,1),(0,0),(0,1),(1,0)]:
+    state=value if load else state
+    print("in",value,"load",load,"state",state)
+PY
+```
+Preveja cada linha. **Erro comum:** achar que mudar `in` muda imediatamente o estado armazenado. O modelo Python simplifica o relógio; o teste HDL deve verificar a semântica de `tick/tock`.
+
+
 ## Fenômeno
 
 Uma porta combinacional responde às entradas atuais. Um registrador precisa **manter um valor** mesmo quando a entrada muda.

@@ -2,6 +2,47 @@
 
 **Não consulte o gabarito antes de tentar.**
 
+## Guia de fundamentos — leitura antes do PACTO
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F04–F08; não exige eletrônica prévia. **Objetivo:** explicar o mecanismo antes de pedir previsões avançadas.
+
+### Analogia do cotidiano
+Uma receita de cozinha costuma pressupor fogão, água e utensílios. Um executável Linux pressupõe kernel, loader e bibliotecas. Um kernel freestanding precisa preparar sua própria infraestrutura.
+
+**Onde a analogia falha:** Uma receita não explica ABI, linker, CPU ou mapa de memória. `-ffreestanding` não desliga automaticamente todas as chamadas de biblioteca.
+
+### Mecanismo, passo a passo
+`-ffreestanding` altera pressupostos do compilador; não transforma automaticamente qualquer C em código seguro para kernel. `-mcmodel=kernel` restringe como GCC gera endereços para a região superior de memória virtual x86-64.
+
+### Exemplo resolvido
+`int main(){return 0;}` pode funcionar como programa hospedado. No kernel, não há quem invoque `main` por convenção. O ponto de entrada depende do linker e do bootloader.
+
+### Caso-limite e erro comum
+`readelf -h` mostra cabeçalho ELF; `readelf -l` mostra segmentos de carga. Ambos são inspeção estática: não demonstram boot.
+
+### Diagrama de fluxo
+```mermaid
+flowchart LR
+ C[C fonte] --> CC[Compilador]
+ CC --> O[Objeto]
+ O --> L[Linker]
+ L --> E[ELF kernel]
+ E --> B[Limine]
+ B --> K[Entry point]
+```
+
+O diagrama mostra relações conceituais; não comprova temporização, privilégios ou execução real.
+
+### Exercícios graduados
+1. **Recuperação:** Qual a diferença entre compilar, ligar, carregar e executar? Por que uma referência não resolvida a `printf` pode falhar no link?
+2. **Aplicação:** desenhe o fluxo do diagrama e anote o papel de cada etapa sem usar a analogia.
+3. **Transferência:** Desenhe um fluxo com compiler → object → linker → ELF → Limine → entry point; indique um tipo de falha por etapa.
+
+### Orientação de correção
+Uma resposta adequada deve nomear as estruturas técnicas, justificar cada transição e apresentar um contraexemplo. Compare sua solução com os exemplos e o código citado no laboratório; registre dúvidas em vez de declarar compreensão sem evidência.
+
+**Estado desta ampliação:** conteúdo editorial implementado; execução dos exemplos, teste com estudante iniciante e revisão independente **NOT_RUN**. As evidências históricas citadas no workbook original pertencem aos commits e ambientes ali identificados, não a esta alteração.
+
 ## 1. Fenômeno
 Um `hello.c` comum compila e roda no Linux. O mesmo arquivo, carregado direto pelo bootloader, não teria `printf`, `main`, libc, sistema de arquivos nem processo. Como construir um executável que não depende de nada disso?
 
