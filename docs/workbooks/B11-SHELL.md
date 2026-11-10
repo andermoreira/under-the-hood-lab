@@ -2,6 +2,39 @@
 
 **Não consulte o gabarito antes de tentar.**
 
+## Guia de fundamentos — antes do PACTO
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F06–F08. **Objetivo:** compreender o mecanismo antes dos exercícios avançados.
+
+### Analogia real e limites
+Uma recepção identifica o pedido e encaminha ao setor adequado. **Onde falha:** Um parser não entende intenções; somente reconhece a gramática implementada. Um shell em ring 0 não está isolado do kernel.
+
+### Mecanismo
+`run hello` envolve procurar um executável, carregá-lo e iniciar execução. Comandos desconhecidos devem ser rejeitados de modo controlado.
+
+### Exemplo resolvido
+A linha `cat greeting.txt` vira os tokens `cat` e `greeting.txt`. O dispatch seleciona o comando de leitura, que consulta o sistema de arquivos.
+
+### Caso-limite
+O buffer é finito; entradas longas e muitos argumentos exigem validação. Tokenizar in-place modifica a string original.
+
+### Fluxo visual
+```mermaid
+flowchart LR
+ I[Linha de comando] --> T[Tokenizar]
+ T --> D[Dispatch]
+ D --> F[Operação de arquivo]
+ D --> E[Executar ELF]
+```
+
+### Exercícios graduados
+1. **Recuperação:** Explique token, parser, dispatch e built-in. Por que o shell não é o kernel?
+2. **Aplicação:** reconstrua o fluxo do diagrama sem consultar.
+3. **Transferência:** Como testar uma linha com argumentos demais?
+
+### Evidência
+**ENG/LEARN desta alteração: NOT_RUN.** As evidências históricas citadas abaixo não validam a revisão pedagógica atual. Registrar previsão, execução, resultado, commit e explicação independente.
+
 ## 1. Fenômeno
 Até agora o kernel executava uma sequência fixa de testes. Um sistema utilizável recebe comandos e reage. Como transformar uma linha de texto como `cat greeting.txt` em uma ação (ler um arquivo do disco e imprimi-lo), ligando teclado/entrada, sistema de arquivos e carregador de programas?
 
