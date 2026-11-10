@@ -104,6 +104,74 @@ extern void scheduler_init(void);
 extern int scheduler_spawn(void (*entry)(void *), void *arg);
 extern void scheduler_yield(void);
 extern unsigned scheduler_run(void);
+extern void usermode_init(uint64_t kernel_stack_top);
+extern int usermode_run(uint64_t entry_rip, uint64_t user_rsp);
+extern void *paging_map_user_page(uint64_t virt);
+extern char user_payload_start[];
+extern char user_payload_end[];
+extern int elf_load(const void *image, uint64_t size, uint64_t *entry_out);
+extern char user_elf_start[];
+extern char user_elf_end[];
+extern int fs_read(const char *name, void *buf, uint32_t buf_len);
+extern int fs_write(const char *name, const void *buf, uint32_t len);
+extern int shell_selftest(void);
+
+/* B10 disk+FS smoke test: read the seeded file, overwrite it, read it back and
+ * confirm the new contents, proving persistence through the ATA driver and the
+ * toy filesystem. */
+static int b10_streq(const char *a, const char *b, int n) {
+    for (int i = 0; i < n; ++i) if (a[i] != b[i]) return 0;
+    return 1;
+}
+static int filesystem_selftest(void) {
+    char buf[64];
+    int n = fs_read("greeting.txt", buf, sizeof(buf));
+    if (n != 8 || !b10_streq(buf, "disk-v1\n", 8)) return 0;
+    const char *updated = "disk-v2!\n";
+    if (fs_write("greeting.txt", updated, 9) != 9) return 0;
+    for (int i = 0; i < 64; ++i) buf[i] = 0;
+    n = fs_read("greeting.txt", buf, sizeof(buf));
+    if (n != 9 || !b10_streq(buf, updated, 9)) return 0;
+    return 1;
+}
+
+/* B09 ELF-loader smoke test: parse the embedded user ELF, map its PT_LOAD
+ * segments into user space, map a fresh user stack, and run it in ring 3. The
+ * program issues SYS_write ("B09_ELF_HELLO") then SYS_exit, proving the loader
+ * reaches a working ring-3 entry point. */
+#define B09_USER_STACK 0x0000000000a00000ULL
+static int elf_loader_selftest(void) {
+    uint64_t entry = 0;
+    uint64_t size = (uint64_t)(user_elf_end - user_elf_start);
+    if (!elf_load(user_elf_start, size, &entry)) return 0;
+    if (entry < 0x100000ULL || entry >= 0x0000800000000000ULL) return 0;
+    void *stack = paging_map_user_page(B09_USER_STACK);
+    if (!stack) return 0;
+    uint64_t user_rsp = B09_USER_STACK + 4096 - 16;
+    return usermode_run(entry, user_rsp) == 0;
+}
+
+/* B08 ring-3 smoke test: map a user code page and a user stack page, copy the
+ * position-independent payload in, drop to ring 3, and let it issue SYS_write
+ * then SYS_exit. Proves ring0->ring3 transition and the syscall round-trip. */
+#define B08_USER_CODE 0x0000000000400000ULL
+#define B08_USER_STACK 0x0000000000800000ULL
+static uint64_t b08_kernel_syscall_stack[512]; /* 4 KiB, 16-byte aligned by type */
+static int usermode_selftest(void) {
+    void *code = paging_map_user_page(B08_USER_CODE);
+    void *stack = paging_map_user_page(B08_USER_STACK);
+    if (!code || !stack) return 0;
+    size_t payload = (size_t)(user_payload_end - user_payload_start);
+    if (payload == 0 || payload > 4096) return 0;
+    for (size_t i = 0; i < payload; ++i)
+        ((uint8_t *)code)[i] = (uint8_t)user_payload_start[i];
+    /* Kernel stack top for syscalls (grows down); keep 16-byte alignment. */
+    uint64_t kstack_top = (uint64_t)(uintptr_t)(b08_kernel_syscall_stack + 512);
+    usermode_init(kstack_top);
+    uint64_t user_rsp = B08_USER_STACK + 4096 - 16;
+    int code_exit = usermode_run(B08_USER_CODE, user_rsp);
+    return code_exit == 0;
+}
 
 /* B07 scheduler smoke test: three ring-0 tasks append their id to a shared
  * trace on each turn, yielding between turns. Cooperative round-robin must
@@ -237,6 +305,33 @@ void kmain(void) {
     serial_write(b07_trace);
     serial_write("\n");
     serial_write("B07_SCHEDULER_OK\n");
+    if (!usermode_selftest()) {
+        serial_write("B08_USERMODE_FAIL\n");
+        for (;;) __asm__ volatile ("cli; hlt");
+    }
+    serial_write("B08_USERMODE_OK\n");
+    if (!elf_loader_selftest()) {
+        serial_write("B09_ELF_FAIL\n");
+        for (;;) __asm__ volatile ("cli; hlt");
+    }
+    serial_write("B09_ELF_OK\n");
+    /* B09 just consumed the hello ELF's user addresses (0x600000 code,
+     * 0xa00000 stack). Release them so the shell's `run hello` can map the
+     * same ET_EXEC image again. */
+    extern void paging_unmap_user_page(uint64_t virt);
+    paging_unmap_user_page(0x0000000000600000ULL);
+    paging_unmap_user_page(0x0000000000601000ULL);
+    paging_unmap_user_page(0x0000000000a00000ULL);
+    if (!filesystem_selftest()) {
+        serial_write("B10_FS_FAIL\n");
+        for (;;) __asm__ volatile ("cli; hlt");
+    }
+    serial_write("B10_FS_OK\n");
+    if (!shell_selftest()) {
+        serial_write("B11_SHELL_FAIL\n");
+        for (;;) __asm__ volatile ("cli; hlt");
+    }
+    serial_write("B11_SHELL_OK\n");
     devices_init();
     while (timer_ticks() < 5) __asm__ volatile ("hlt");
     serial_write("B04_TIMER_TICKS_OK\n");

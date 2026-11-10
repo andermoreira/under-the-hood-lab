@@ -23,9 +23,24 @@ fi
 "$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -march=x86-64 -mtune=generic -mno-bmi2 -mgeneral-regs-only -c "$ROOT/kernel/x86_64/kmalloc.c" -o "$OUT/kmalloc.o"
 "$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -march=x86-64 -mtune=generic -mno-bmi2 -mgeneral-regs-only -c "$ROOT/kernel/x86_64/paging.c" -o "$OUT/paging.o"
 "$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -march=x86-64 -mtune=generic -mno-bmi2 -mgeneral-regs-only -c "$ROOT/kernel/x86_64/scheduler.c" -o "$OUT/scheduler.o"
+"$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -march=x86-64 -mtune=generic -mno-bmi2 -mgeneral-regs-only -c "$ROOT/kernel/x86_64/usermode.c" -o "$OUT/usermode.o"
 "$CC" -m64 -c "$ROOT/kernel/x86_64/interrupts.S" -o "$OUT/interrupts_asm.o"
 "$CC" -m64 -c "$ROOT/kernel/x86_64/switch.S" -o "$OUT/switch_asm.o"
-"$LD" -nostdlib -static -z max-page-size=0x1000 -T "$ROOT/kernel/x86_64/linker.ld" "$OUT/main.o" "$OUT/interrupts.o" "$OUT/devices.o" "$OUT/pmm.o" "$OUT/heap.o" "$OUT/kmalloc.o" "$OUT/paging.o" "$OUT/scheduler.o" "$OUT/interrupts_asm.o" "$OUT/switch_asm.o" -o "$OUT/kernel.elf"
+"$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -march=x86-64 -mtune=generic -mno-bmi2 -mgeneral-regs-only -c "$ROOT/kernel/x86_64/elf.c" -o "$OUT/elf.o"
+"$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -march=x86-64 -mtune=generic -mno-bmi2 -mgeneral-regs-only -c "$ROOT/kernel/x86_64/ata.c" -o "$OUT/ata.o"
+"$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -march=x86-64 -mtune=generic -mno-bmi2 -mgeneral-regs-only -c "$ROOT/kernel/x86_64/fs.c" -o "$OUT/fs.o"
+"$CC" -std=c11 -O2 -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -fno-pic -fno-pie -m64 -mno-red-zone -mcmodel=kernel -march=x86-64 -mtune=generic -mno-bmi2 -mgeneral-regs-only -c "$ROOT/kernel/x86_64/shell.c" -o "$OUT/shell.o"
+"$CC" -m64 -c "$ROOT/kernel/x86_64/usermode.S" -o "$OUT/usermode_asm.o"
+"$CC" -m64 -c "$ROOT/kernel/x86_64/userprog.S" -o "$OUT/userprog_asm.o"
+# B09: build the user program as its own static ELF, then embed it.
+"$CC" -m64 -ffreestanding -fno-pic -c "$ROOT/kernel/x86_64/userland/hello.S" -o "$OUT/hello.o"
+"$LD" -nostdlib -static -z max-page-size=0x1000 -T "$ROOT/kernel/x86_64/userland/hello.ld" "$OUT/hello.o" -o "$OUT/hello.elf"
+"$CC" -m64 -DUSER_ELF_PATH="\"$OUT/hello.elf\"" -c "$ROOT/kernel/x86_64/userland/embed.S" -o "$OUT/user_elf.o"
+# B12: build the deliberately-crashing user program and embed it too.
+"$CC" -m64 -ffreestanding -fno-pic -c "$ROOT/kernel/x86_64/userland/crash.S" -o "$OUT/crash.o"
+"$LD" -nostdlib -static -z max-page-size=0x1000 -T "$ROOT/kernel/x86_64/userland/crash.ld" "$OUT/crash.o" -o "$OUT/crash.elf"
+"$CC" -m64 -DCRASH_ELF_PATH="\"$OUT/crash.elf\"" -c "$ROOT/kernel/x86_64/userland/embed_crash.S" -o "$OUT/crash_elf.o"
+"$LD" -nostdlib -static -z max-page-size=0x1000 -T "$ROOT/kernel/x86_64/linker.ld" "$OUT/main.o" "$OUT/interrupts.o" "$OUT/devices.o" "$OUT/pmm.o" "$OUT/heap.o" "$OUT/kmalloc.o" "$OUT/paging.o" "$OUT/scheduler.o" "$OUT/usermode.o" "$OUT/elf.o" "$OUT/ata.o" "$OUT/fs.o" "$OUT/shell.o" "$OUT/interrupts_asm.o" "$OUT/switch_asm.o" "$OUT/usermode_asm.o" "$OUT/userprog_asm.o" "$OUT/user_elf.o" "$OUT/crash_elf.o" -o "$OUT/kernel.elf"
 "$READELF" -h "$OUT/kernel.elf" | grep -q 'Machine:.*Advanced Micro Devices X86-64'
 "$READELF" -h "$OUT/kernel.elf" | grep -q 'Type:.*EXEC'
 "$READELF" -h "$OUT/kernel.elf" | grep -q 'Entry point address:'

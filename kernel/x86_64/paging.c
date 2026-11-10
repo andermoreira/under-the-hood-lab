@@ -7,12 +7,14 @@
 #define PAGE_SIZE 4096ULL
 #define PRESENT 1ULL
 #define WRITABLE 2ULL
+#define USER (1ULL << 2)
 #define HUGE (1ULL << 7)
 #define ADDRESS_MASK 0x000ffffffffff000ULL
 #define TEST_VIRTUAL 0xffffc00000000000ULL
 
 extern uint64_t pmm_alloc(void);
 extern int pmm_free(uint64_t physical);
+extern int pmm_reserve(uint64_t physical);
 
 static uint64_t direct_map;
 static uint64_t mapped_frame;
@@ -48,13 +50,44 @@ int paging_init(uint64_t hhdm) {
  * still points at Limine's PDPTs, so lower levels remain shared. */
 static uint64_t kernel_pml4 = UINT64_MAX;
 
+/* The higher-half tables (kernel image + HHDM) stay Limine's and are shared by
+ * our PML4. They live in otherwise-"usable" physical memory, so the PMM would
+ * happily hand them out; a later paging_map_user_page would then zero a live
+ * table and corrupt the address space (seen as a reserved-bit #PF). Walk the
+ * higher half and reserve every physical frame that backs a page table, so the
+ * PMM never allocates over the bootloader's live translation structures.
+ * Addresses this review finding (kernel #4): bootloader tables protected. */
+static void reserve_table_frames(const uint64_t *table, unsigned level) {
+    /* level 3 = PML4, 2 = PDPT, 1 = PD. Leaf PTs (level 0) are reserved by
+     * their parent's loop; we never descend into 4 KiB leaf entries. */
+    for (unsigned i = 0; i < 512; ++i) {
+        uint64_t entry = table[i];
+        if (!(entry & PRESENT)) continue;
+        if (entry & HUGE) continue;           /* maps memory, not a table */
+        uint64_t child = entry & ADDRESS_MASK;
+        pmm_reserve(child);                   /* protect the child table frame */
+        if (level > 1) reserve_table_frames(table_at(child), level - 1);
+    }
+}
+
 int paging_adopt_kernel_space(void) {
     if (!direct_map || kernel_pml4 != UINT64_MAX) return 0;
-    uint64_t frame = pmm_alloc();
-    if (frame == UINT64_MAX) return 0;
     uint64_t cr3;
     __asm__ volatile ("mov %%cr3, %0" : "=r"(cr3));
     const uint64_t *limine_pml4 = table_at(cr3 & ADDRESS_MASK);
+
+    /* Protect the shared higher-half tables before allocating anything that
+     * could land on top of them. */
+    for (unsigned i = 256; i < 512; ++i) {
+        uint64_t entry = limine_pml4[i];
+        if (!(entry & PRESENT) || (entry & HUGE)) continue;
+        uint64_t child = entry & ADDRESS_MASK;
+        pmm_reserve(child);
+        reserve_table_frames(table_at(child), 2);
+    }
+
+    uint64_t frame = pmm_alloc();
+    if (frame == UINT64_MAX) return 0;
     uint64_t *pml4 = table_at(frame);
     for (unsigned i = 0; i < 256; ++i) pml4[i] = 0;
     for (unsigned i = 256; i < 512; ++i) pml4[i] = limine_pml4[i];
@@ -183,4 +216,68 @@ int paging_unmap_test_page(void) {
         if (!pmm_free(frame)) return 0;
     }
     return 1;
+}
+
+/* B08: map one 4 KiB user-accessible page at `virt` in the active address
+ * space. Allocates a fresh leaf frame and any missing intermediate tables,
+ * all with the USER bit set (every level must permit ring-3 access). Existing
+ * intermediate entries have USER OR-ed in so a kernel-only parent does not
+ * block the new user page. Returns the HHDM pointer to the leaf frame (for the
+ * kernel to fill in), or NULL on failure. No rollback: intended for one-shot
+ * setup of a single user task, not repeated mapping. */
+void *paging_map_user_page(uint64_t virt) {
+    if (!direct_map || (virt & (PAGE_SIZE - 1))) return NULL;
+    uint64_t cr3;
+    __asm__ volatile ("mov %%cr3, %0" : "=r"(cr3));
+    uint64_t *table = table_at(cr3 & ADDRESS_MASK);
+    const unsigned shifts[3] = {39, 30, 21};
+    for (unsigned level = 0; level < 3; ++level) {
+        unsigned index = (unsigned)((virt >> shifts[level]) & 511);
+        uint64_t entry = table[index];
+        if (entry & PRESENT) {
+            if (entry & HUGE) return NULL;
+            table[index] = entry | USER;   /* allow ring-3 descent */
+            table = table_at(entry & ADDRESS_MASK);
+            continue;
+        }
+        uint64_t frame = pmm_alloc();
+        if (frame == UINT64_MAX) return NULL;
+        uint64_t *child = table_at(frame);
+        zero_page(child);
+        table[index] = frame | PRESENT | WRITABLE | USER;
+        table = child;
+    }
+    unsigned leaf = (unsigned)((virt >> 12) & 511);
+    if (table[leaf] & PRESENT) return NULL;
+    uint64_t frame = pmm_alloc();
+    if (frame == UINT64_MAX) return NULL;
+    uint64_t *page = table_at(frame);
+    zero_page(page);
+    table[leaf] = frame | PRESENT | WRITABLE | USER;
+    __asm__ volatile ("invlpg (%0)" : : "r"((uintptr_t)virt) : "memory");
+    return page;
+}
+
+/* B11: release a user page previously mapped by paging_map_user_page. Clears
+ * the leaf PTE, flushes the TLB, and returns the data frame to the PMM.
+ * Intermediate tables are left in place (they may still hold sibling pages);
+ * this matches the one-shot nature of the user mappings here. */
+void paging_unmap_user_page(uint64_t virt) {
+    if (!direct_map || (virt & (PAGE_SIZE - 1))) return;
+    uint64_t cr3;
+    __asm__ volatile ("mov %%cr3, %0" : "=r"(cr3));
+    uint64_t *table = table_at(cr3 & ADDRESS_MASK);
+    const unsigned shifts[3] = {39, 30, 21};
+    for (unsigned level = 0; level < 3; ++level) {
+        unsigned index = (unsigned)((virt >> shifts[level]) & 511);
+        uint64_t entry = table[index];
+        if (!(entry & PRESENT) || (entry & HUGE)) return;
+        table = table_at(entry & ADDRESS_MASK);
+    }
+    unsigned leaf = (unsigned)((virt >> 12) & 511);
+    uint64_t entry = table[leaf];
+    if (!(entry & PRESENT)) return;
+    table[leaf] = 0;
+    __asm__ volatile ("invlpg (%0)" : : "r"((uintptr_t)virt) : "memory");
+    pmm_free(entry & ADDRESS_MASK);
 }

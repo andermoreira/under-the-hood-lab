@@ -60,6 +60,22 @@ uint64_t pmm_alloc(void) {
     return UINT64_MAX;
 }
 
+/* Reserve a specific frame so it is never handed out. Used to protect the
+ * bootloader's live page tables (which live in otherwise "usable" memory)
+ * before the kernel starts allocating its own tables. Idempotent; returns 1
+ * if the frame transitioned from free to reserved, 0 otherwise. */
+int pmm_reserve(uint64_t physical) {
+    if (physical % PAGE_SIZE || physical / PAGE_SIZE >= MAX_FRAMES) return 0;
+    uint64_t frame = physical / PAGE_SIZE;
+    if (frame == 0) return 0;
+    if (bit_get(frame)) return 0;       /* already used/reserved */
+    bit_set(frame);
+    /* Not marked `owned`: reserved firmware/bootloader frames must never be
+     * accepted by pmm_free. */
+    --free_frames;
+    return 1;
+}
+
 /* Reject double-free, unaligned, zero and out-of-range frames. */
 int pmm_free(uint64_t physical) {
     if (!physical || physical % PAGE_SIZE || physical / PAGE_SIZE >= MAX_FRAMES) return 0;

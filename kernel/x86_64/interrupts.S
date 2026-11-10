@@ -9,12 +9,15 @@ isr_invalid_opcode:
     hlt
     jmp 1b
 
-/* #PF pushes an error code; pass it as the first argument. Fatal for now. */
+/* #PF frame (top of stack first): error_code, RIP, CS, RFLAGS, RSP, SS.
+ * Pass the error code (arg0) and the saved CS (arg1) to the C handler so it
+ * can tell a ring-3 fault (CPL=3, contain it) from a ring-0 fault (fatal). */
 .global isr_page_fault
 .type isr_page_fault, @function
 isr_page_fault:
     cld
-    movq (%rsp), %rdi
+    movq 0(%rsp), %rdi      /* error code */
+    movq 16(%rsp), %rsi     /* saved CS */
     andq $-16, %rsp
     call exception_page_fault
 2:  cli

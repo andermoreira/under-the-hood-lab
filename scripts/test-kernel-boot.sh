@@ -14,6 +14,10 @@ cp "$ROOT/kernel/x86_64/limine.conf" "$OUT/iso_root/boot/limine/limine.conf"
 cp "$LIMINE_DIR/limine-bios.sys" "$LIMINE_DIR/limine-bios-cd.bin" "$LIMINE_DIR/limine-uefi-cd.bin" "$OUT/iso_root/boot/limine/"
 xorriso -as mkisofs -R -r -J -b boot/limine/limine-bios-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table --efi-boot boot/limine/limine-uefi-cd.bin -efi-boot-part --efi-boot-image -o "$OUT/kernel.iso" "$OUT/iso_root" >/dev/null 2>&1
 "$LIMINE_DIR/limine" bios-install "$OUT/kernel.iso"
+# B10: regenerate the disk image fresh each run so the persistence assertion
+# ("disk-v1" seeded, rewritten to "disk-v2!") is deterministic.
+python3 "$ROOT/tools/make_disk.py" "$OUT/disk.img"
+
 rm -f "$OUT/qemu-monitor.sock"
 if [[ "${B04_EXPECT_KEYBOARD:-0}" == "1" ]]; then
   python3 - "$OUT/qemu-monitor.sock" "$OUT/serial.log" <<'PY' &
@@ -49,7 +53,7 @@ PY
   injector_pid=$!
 fi
 set +e
-timeout --signal=TERM --kill-after=3s 20s qemu-system-x86_64 -machine q35 -m 128M -cdrom "$OUT/kernel.iso" -boot d -display none -monitor "unix:$OUT/qemu-monitor.sock,server,nowait" -serial "file:$OUT/serial.log" -no-reboot -no-shutdown -d int,cpu_reset -D "$OUT/qemu-debug.log" >"$OUT/qemu.log" 2>&1
+timeout --signal=TERM --kill-after=3s 20s qemu-system-x86_64 -machine pc -m 128M -cdrom "$OUT/kernel.iso" -boot d -drive id=disk,file="$OUT/disk.img",format=raw,if=ide,index=0,media=disk -display none -monitor "unix:$OUT/qemu-monitor.sock,server,nowait" -serial "file:$OUT/serial.log" -no-reboot -no-shutdown -d int,cpu_reset -D "$OUT/qemu-debug.log" >"$OUT/qemu.log" 2>&1
 rc=$?
 set -e
 if [[ -n "${injector_pid:-}" ]]; then wait "$injector_pid" || { echo "FAIL: keyboard injection failed" >&2; exit 1; }; fi
@@ -129,6 +133,51 @@ if ! grep -Fxq 'B07_SCHEDULER_TRACE_ABCABCABC' "$OUT/serial.log"; then
   cat "$OUT/serial.log" >&2
   exit 1
 fi
+if ! grep -Fxq 'B08_USERLAND_HELLO' "$OUT/serial.log"; then
+  echo 'FAIL: ring-3 SYS_write output not observed' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
+if ! grep -Fxq 'B08_USERMODE_OK' "$OUT/serial.log"; then
+  echo 'FAIL: ring-3 transition and syscall round-trip not observed' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
+if ! grep -Fxq 'B09_ELF_HELLO' "$OUT/serial.log"; then
+  echo 'FAIL: loaded ELF program SYS_write output not observed' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
+if ! grep -Fxq 'B09_ELF_OK' "$OUT/serial.log"; then
+  echo 'FAIL: ELF loader did not reach a working ring-3 entry point' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
+if ! grep -Fxq 'B10_FS_OK' "$OUT/serial.log"; then
+  echo 'FAIL: disk read/write persistence smoke test not observed' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
+if ! grep -Fxq 'B11_LS_greeting.txt' "$OUT/serial.log"; then
+  echo 'FAIL: shell ls built-in not observed' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
+if ! grep -Fxq 'B12_CRASH_BEFORE_FAULT' "$OUT/serial.log"; then
+  echo 'FAIL: crashing user program did not reach ring 3' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
+if ! grep -Fxq 'B12_CRASH_CONTAINED' "$OUT/serial.log"; then
+  echo 'FAIL: kernel did not contain the ring-3 fault' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
+if ! grep -Fxq 'B11_SHELL_OK' "$OUT/serial.log"; then
+  echo 'FAIL: shell integration selftest not observed' >&2
+  cat "$OUT/serial.log" >&2
+  exit 1
+fi
 if ! grep -Fxq 'B04_TIMER_TICKS_OK' "$OUT/serial.log"; then
   echo 'FAIL: five PIT timer interrupts not observed' >&2
   cat "$OUT/serial.log" >&2
@@ -156,7 +205,10 @@ if [[ "${B06_EXPECT_PF:-0}" == "1" ]]; then
   grep -Fxq 'EXCEPTION_PF_CR2_0x0000000000001000' "$OUT/serial.log" || { echo 'FAIL: expected #PF at lower-half address 0x1000 missing' >&2; cat "$OUT/serial.log" >&2; exit 1; }
   grep -Fxq 'EXCEPTION_PF_ERROR_0x0000000000000000' "$OUT/serial.log" || { echo 'FAIL: expected not-present kernel read error code missing' >&2; cat "$OUT/serial.log" >&2; exit 1; }
 else
-  if grep -Fq 'EXCEPTION_PF' "$OUT/serial.log"; then echo 'FAIL: unexpected #PF' >&2; cat "$OUT/serial.log" >&2; exit 1; fi
+  # A contained ring-3 fault (EXCEPTION_PF_USER_*) is expected during the B12
+  # crash-containment test. Only a fatal #PF (EXCEPTION_PF_CR2_/_ERROR_) is a
+  # failure here.
+  if grep -Eq 'EXCEPTION_PF_(CR2|ERROR)_' "$OUT/serial.log"; then echo 'FAIL: unexpected fatal #PF' >&2; cat "$OUT/serial.log" >&2; exit 1; fi
 fi
 if grep -Eiq 'PANIC|KERNEL_FAULT' "$OUT/serial.log"; then
   echo "FAIL: unexpected kernel failure marker" >&2

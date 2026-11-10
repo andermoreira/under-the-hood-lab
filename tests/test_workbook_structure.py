@@ -5,7 +5,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WORKBOOKS = ROOT / "docs/workbooks"
 TRACK_B = ["B01-TOOLCHAIN", "B02-BOOT-SERIAL", "B03-GDT-IDT", "B04-TIMER-KEYBOARD",
-           "B05-PMM", "B06-PAGING-HEAP", "B07-SCHEDULER"]
+           "B05-PMM", "B06-PAGING-HEAP", "B07-SCHEDULER", "B08-USERMODE",
+           "B09-ELF-LOADER", "B10-DISK-FS", "B11-SHELL", "B12-INTEGRATION"]
 # PACTO sequence (docs/PEDAGOGY.md) as used by workbooks/A01.md.
 SECTIONS = ["Fenômeno", "Previsão", "Analogia", "Onde a analogia falha", "Faça",
             "Refute", "Explique sem analogia", "Transfira", "Revisão", "Evidência"]
