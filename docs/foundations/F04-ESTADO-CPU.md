@@ -8,6 +8,12 @@ Um circuito combinacional não lembra o que aconteceu antes. Para contar eventos
 ## 2. Conceitos construídos passo a passo
 Um registrador de 4 bits contém 0011 (3). Se a lógica calcular +1 e o registrador capturar o resultado na próxima borda de relógio, passará a 0100 (4). Sem a captura, a saída do registrador permanece 0011, mesmo que a lógica combinacional tenha calculado outro valor.
 
+## Analogia com o mundo real
+Um registrador é como um placar que conserva o último número registrado. A ALU é a calculadora que produz um novo número; o relógio é o sinal que autoriza atualizar o placar. O PC funciona como o marcador da próxima linha de uma receita de instruções.
+
+### Onde a analogia deixa de funcionar
+Um placar não representa o funcionamento elétrico do armazenamento. A CPU pode ter múltiplos registradores e executar operações complexas; nem toda instrução simplesmente avança uma linha.
+
 ## 3. Exemplo resolvido
 Uma CPU combina registradores, uma unidade lógica e aritmética (ALU), lógica de controle e um contador de programa (PC). A ALU calcula; o PC indica a próxima instrução; registradores mantêm operandos e resultados. A CPU Hack da trilha A é um modelo didático, diferente da arquitetura x86-64 da trilha B.
 
