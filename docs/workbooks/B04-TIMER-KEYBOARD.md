@@ -2,6 +2,46 @@
 
 **Não consulte o gabarito antes de tentar.**
 
+## Guia de fundamentos — leitura antes do PACTO
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F04–F08; não exige eletrônica prévia. **Objetivo:** explicar o mecanismo antes de pedir previsões avançadas.
+
+### Analogia do cotidiano
+Uma campainha avisa que chegou alguém sem exigir que você abra a porta repetidamente. Uma interrupção sinaliza evento de dispositivo.
+
+**Onde a analogia falha:** Interrupções não são chamadas de função normais e podem ocorrer entre instruções; controladores, máscaras, prioridades e reconhecimento influenciam a entrega.
+
+### Mecanismo, passo a passo
+Com frequência de entrada aproximada de 1.193.182 Hz e divisor 11.932, o PIT gera cerca de 100 interrupções por segundo, não exatamente 100.
+
+### Exemplo resolvido
+O PIT gera pulsos periódicos. O PIC recebe IRQs, remapeia vetores para evitar colisão com exceções da CPU e exige EOI após atendimento.
+
+### Caso-limite e erro comum
+Um teclado PS/2 envia scancodes, não letras Unicode. Transformar scancode em caractere depende de layout, modificadores e outras regras.
+
+### Diagrama de fluxo
+```mermaid
+flowchart LR
+ D[Dispositivo] --> IRQ[IRQ]
+ IRQ --> PIC[PIC]
+ PIC --> IDT[IDT]
+ IDT --> H[Handler]
+ H --> E[EOI]
+```
+
+O diagrama mostra relações conceituais; não comprova temporização, privilégios ou execução real.
+
+### Exercícios graduados
+1. **Recuperação:** O que é IRQ, vetor, PIC, PIT, EOI e scancode? Por que remapear IRQ0 para fora do vetor 8?
+2. **Aplicação:** desenhe o fluxo do diagrama e anote o papel de cada etapa sem usar a analogia.
+3. **Transferência:** Como distinguir uma tecla repetida de duas teclas pressionadas, e que informações faltam no driver atual?
+
+### Orientação de correção
+Uma resposta adequada deve nomear as estruturas técnicas, justificar cada transição e apresentar um contraexemplo. Compare sua solução com os exemplos e o código citado no laboratório; registre dúvidas em vez de declarar compreensão sem evidência.
+
+**Estado desta ampliação:** conteúdo editorial implementado; execução dos exemplos, teste com estudante iniciante e revisão independente **NOT_RUN**. As evidências históricas citadas no workbook original pertencem aos commits e ambientes ali identificados, não a esta alteração.
+
 ## 1. Fenômeno
 O kernel precisa saber que o tempo passou e que uma tecla foi apertada, sem ficar perguntando o tempo todo. Como um dispositivo interrompe a CPU?
 
