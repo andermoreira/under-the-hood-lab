@@ -2,6 +2,18 @@
 
 **Público:** sabe programar, não conhece eletrônica. **Pré-requisito:** [F04-ESTADO-CPU ](F04-ESTADO-CPU.md). **Tempo sugerido:** 60–100 minutos.
 
+## Mapa visual do conceito
+
+```mermaid
+flowchart LR
+ V["Endereço virtual"] --> T["Tradução por tabelas de páginas"]
+ T --> P["Frame físico"]
+ P --> M["Bytes na RAM"]
+ T -. "permissão ausente ou inválida" .-> F["Falha de acesso"]
+```
+
+**Como ler:** siga as setas para identificar entradas, transformações e saídas. Este é um modelo didático, não um diagrama elétrico nem uma prova de temporização.
+
 ## 1. Problema concreto
 Memória é um conjunto de posições endereçáveis. Um endereço é um identificador de posição, não o valor armazenado nela. Um ponteiro é um valor usado como endereço segundo as regras da linguagem e do ambiente de execução.
 
