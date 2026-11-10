@@ -1,5 +1,30 @@
 # A03 — A ALU: a calculadora que obedece seis controles
 
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F02–F05. Este capítulo pressupõe programação básica, não eletrônica.
+
+## Fundamento: uma calculadora configurável
+
+**ALU** significa unidade lógica e aritmética. Ela recebe operandos `x` e `y`, sinais de controle e produz `out` e flags. A ALU Hack usa seis bits de controle: `zx` zera x, `nx` inverte x, `zy` zera y, `ny` inverte y, `f` seleciona AND (0) ou soma (1), e `no` inverte a saída. A ordem dessas transformações é parte da especificação.
+
+**Analogia:** uma máquina de cozinha tem seletores que alteram o preparo antes de executar a operação principal. **Limite:** a ALU não movimenta peças ou ingredientes; seus controles atuam sobre sinais e circuitos.
+
+**Exemplo resolvido:** para x=1 e y=1, com `zx=nx=zy=ny=no=0`, `f=0` produz `1 AND 1 = 1`; `f=1` produz `1+1=2`. A diferença é visível mesmo sem compreender os demais controles.
+
+**Flags:** `zr=1` quando os 16 bits de `out` são zero. `ng` copia o bit mais significativo de `out`, interpretado como sinal na representação em complemento de dois. `ng=1` não significa que houve erro.
+
+**Caso-limite:** para x=0, y=0, AND e soma produzem ambos zero. Um teste apenas com zeros **não detecta** troca acidental do controle `f`.
+
+**Experimento independente:**
+```bash
+python3 - <<'PY'
+for x,y in [(0,0),(1,1),(1,2),(0xffff,1)]:
+    print(hex(x),hex(y),"AND",hex(x&y),"ADD",hex((x+y)&0xffff))
+PY
+```
+Preveja os resultados e depois localize os controles correspondentes em `ALU.hdl`. **Erro comum:** confundir o bit `ng` com carry ou com a comparação entre operandos.
+
+
 ## Fenômeno
 Uma mesma rede de circuitos produz soma, AND, OR, negação e outras operações sem precisar de uma máquina separada para cada tarefa.
 
