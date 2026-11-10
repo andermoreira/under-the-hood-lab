@@ -2,6 +2,18 @@
 
 **Pré-requisito:** variáveis, funções e condicionais. **Tempo sugerido:** 45–75 minutos. **Sem eletrônica prévia.**
 
+## Mapa visual do conceito
+
+```mermaid
+flowchart LR
+ A["Valor 42"] --> B["Binário: 00101010"]
+ B --> C["Hexadecimal: 0x2A"]
+ B --> D["Interpretar como inteiro: 42"]
+ B --> E["Interpretar como ASCII: *"]
+```
+
+**Como ler:** siga as setas para identificar entradas, transformações e saídas. Este é um modelo didático, não um diagrama elétrico nem uma prova de temporização.
+
 ## Uma pergunta antes da teoria
 Você escreveu `idade = 42`. Como um computador distingue o número 42 da letra 'B' se ambos são armazenados em memória? Ele **não distingue sozinho**: a interpretação depende das regras e instruções usadas pelo programa.
 
