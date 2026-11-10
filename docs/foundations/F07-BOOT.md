@@ -8,6 +8,12 @@ O processador precisa começar a executar instruções em algum ponto. O firmwar
 ## 2. Conceitos construídos passo a passo
 No laboratório x86-64, o Limine é o bootloader. Ele prepara condições necessárias para o kernel, como informações de memória e ambiente de execução. O kernel não começa como um programa comum iniciado pelo Linux: não pode presumir processos, libc ou `printf`.
 
+## Analogia com o mundo real
+O firmware se parece com a equipe que abre um teatro, verifica as instalações e indica quem assume a preparação. O bootloader prepara o palco e entrega o controle ao kernel, que passa a organizar o funcionamento durante a apresentação.
+
+### Onde a analogia deixa de funcionar
+Não existe uma equipe humana sequencial dentro da CPU; diferentes plataformas têm processos de boot distintos. O bootloader não necessariamente configura todos os dispositivos, e entregar o controle não comprova que o kernel está correto.
+
 ## 3. Exemplo resolvido
 O kernel é compilado e ligado como executável ELF. Um arquivo ELF contém cabeçalhos e segmentos; segmentos carregáveis indicam quais partes precisam ir para a memória. O entry point informa onde a execução começa, mas um boot bem-sucedido depende também de configuração, protocolo e hardware compatível.
 
