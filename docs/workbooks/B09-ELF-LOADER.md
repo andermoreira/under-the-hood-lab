@@ -2,6 +2,46 @@
 
 **Não consulte o gabarito antes de tentar.**
 
+## Guia de fundamentos — leitura antes do PACTO
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F04–F08; não exige eletrônica prévia. **Objetivo:** explicar o mecanismo antes de pedir previsões avançadas.
+
+### Analogia do cotidiano
+Uma planta de montagem indica onde colocar peças e quais espaços precisam ser reservados. Um ELF indica segmentos carregáveis, endereços e ponto de entrada.
+
+**Onde a analogia falha:** Um ELF pode ser malicioso; validar campos é obrigatório. Seções e segmentos não são equivalentes: o carregador normalmente usa program headers e PT_LOAD.
+
+### Mecanismo, passo a passo
+O loader valida arquitetura, formato, limites e overflow aritmético antes de mapear páginas. `e_entry` precisa apontar para código acessível no espaço carregado.
+
+### Exemplo resolvido
+Um segmento com p_filesz=0x40 e p_memsz=0x1000 copia 64 bytes do arquivo e zera os 4032 bytes restantes. Essa região costuma representar dados inicializados em zero.
+
+### Caso-limite e erro comum
+Um arquivo válido pode falhar ao executar por permissões, pilha ou ABI. `readelf` inspeciona metadados; não comprova execução em ring 3.
+
+### Diagrama de fluxo
+```mermaid
+flowchart LR
+ ELF[ELF] --> H[Validar headers]
+ H --> S[PT_LOAD]
+ S --> M[Mapear e copiar]
+ M --> Z[Zerar restante]
+ Z --> E[Entry point]
+```
+
+O diagrama mostra relações conceituais; não comprova temporização, privilégios ou execução real.
+
+### Exercícios graduados
+1. **Recuperação:** Diferencie ELF, program header, PT_LOAD, p_filesz, p_memsz, entry point e seção.
+2. **Aplicação:** desenhe o fluxo do diagrama e anote o papel de cada etapa sem usar a analogia.
+3. **Transferência:** Qual teste negativo detecta um segmento que tenta mapear a metade alta do kernel?
+
+### Orientação de correção
+Uma resposta adequada deve nomear as estruturas técnicas, justificar cada transição e apresentar um contraexemplo. Compare sua solução com os exemplos e o código citado no laboratório; registre dúvidas em vez de declarar compreensão sem evidência.
+
+**Estado desta ampliação:** conteúdo editorial implementado; execução dos exemplos, teste com estudante iniciante e revisão independente **NOT_RUN**. As evidências históricas citadas no workbook original pertencem aos commits e ambientes ali identificados, não a esta alteração.
+
 ## 1. Fenômeno
 No B08 o programa de usuário era um punhado de bytes copiado cru para uma página. Programas reais vêm como arquivos ELF, com cabeçalho, seções e endereços de carga. Como o kernel pega um arquivo ELF e o transforma em um processo que roda em ring 3, colocando cada pedaço no endereço virtual certo?
 
