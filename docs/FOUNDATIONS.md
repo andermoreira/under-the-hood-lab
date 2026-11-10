@@ -4,7 +4,7 @@
 
 ## Contrato de ensino
 - Todo termo técnico novo é definido antes de ser exigido.
-- Toda aula inclui fenômeno observável, explicação progressiva, exemplo resolvido, experimento reproduzível, erros comuns, exercícios graduados e evidências.
+- Toda aula inclui fenômeno observável, explicação progressiva, **analogia concreta do mundo real com limites explícitos**, exemplo resolvido, experimento reproduzível, erros comuns, exercícios graduados e evidências.
 - O código real só entra depois de um modelo mental verificável.
 - **ENG** comprova comportamento do software; **LEARN** requer explicação própria e transferência. Um não implica o outro.
 - Sem exigir equipamentos eletrônicos. Portas são modelos lógicos, não promessas sobre tensão e temporização.
@@ -28,7 +28,7 @@ Comece por [F01](foundations/F01-BITS-BYTES.md), depois [F02](foundations/F02-LO
 1. Objetivo observável e conhecimento prévio.
 2. Problema concreto, sem jargão.
 3. Conceitos novos definidos e desenvolvidos em passos pequenos.
-4. Diagramas ou tabelas com limites explícitos.
+4. Analogia do cotidiano seguida de **onde ela falha**, mais diagramas ou tabelas com limites explícitos.
 5. Dois exemplos resolvidos, incluindo caso-limite.
 6. Experimento seguro com instruções, previsão e interpretação.
 7. Leitura comentada do código do repositório.
