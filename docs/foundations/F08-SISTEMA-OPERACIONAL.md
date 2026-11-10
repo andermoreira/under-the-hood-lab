@@ -2,6 +2,18 @@
 
 **Público:** sabe programar, não conhece eletrônica. **Pré-requisito:** [F06 — endereços e memória](F06-ENDERECOS-MEMORIA.md) e [F07 — boot](F07-BOOT.md). **Tempo sugerido:** 60–100 minutos.
 
+## Mapa visual do conceito
+
+```mermaid
+flowchart LR
+ U["Programa de usuário"] --> S["Syscall"]
+ S --> K["Kernel: valida pedido"]
+ K --> D["Dispositivo ou recurso"]
+ K --> R["Resultado para o programa"]
+```
+
+**Como ler:** siga as setas para identificar entradas, transformações e saídas. Este é um modelo didático, não um diagrama elétrico nem uma prova de temporização.
+
 ## 1. Problema concreto
 Dois programas querem usar CPU, memória e dispositivos. Sem regras de isolamento, um pode sobrescrever dados do outro ou controlar hardware arbitrariamente. Um sistema operacional fornece mecanismos de execução, proteção e acesso mediado a recursos.
 
