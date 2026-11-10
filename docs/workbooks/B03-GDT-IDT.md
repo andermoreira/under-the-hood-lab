@@ -2,6 +2,45 @@
 
 **Não consulte o gabarito antes de tentar.**
 
+## Guia de fundamentos — leitura antes do PACTO
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F04–F08; não exige eletrônica prévia. **Objetivo:** explicar o mecanismo antes de pedir previsões avançadas.
+
+### Analogia do cotidiano
+Uma central de emergências tem um catálogo que associa ocorrências a equipes. A IDT associa vetores de interrupção/exceção a handlers.
+
+**Onde a analogia falha:** A CPU não telefona nem aguarda; a entrega da exceção segue regras arquiteturais de privilégio, pilha e estado. Uma entrada inválida pode desencadear falhas adicionais.
+
+### Mecanismo, passo a passo
+A GDT fornece descritores e seletores de segmento; no modo longo, a segmentação convencional de endereços é limitada, mas seletores e privilégios continuam relevantes.
+
+### Exemplo resolvido
+A instrução `ud2` gera #UD (vetor 6). A IDT indica o handler; o stub em assembly preserva estado e o código decide como tratar a falha.
+
+### Caso-limite e erro comum
+Sem gate válido para #UD, a entrega pode gerar #GP; falhas aninhadas podem levar a double fault e reset. Isso não é uma estratégia de recuperação.
+
+### Diagrama de fluxo
+```mermaid
+flowchart TD
+ I[Instrução ud2] --> X[Exceção vetor 6]
+ X --> T[IDT]
+ T --> H[Handler]
+ H --> R[Registro e parada controlada]
+```
+
+O diagrama mostra relações conceituais; não comprova temporização, privilégios ou execução real.
+
+### Exercícios graduados
+1. **Recuperação:** Explique vetor, handler, IDT, GDT e `iretq`. Por que #PF traz código de erro e #UD não?
+2. **Aplicação:** desenhe o fluxo do diagrama e anote o papel de cada etapa sem usar a analogia.
+3. **Transferência:** Desenhe o caminho de uma exceção de usuário que pode ser contida e de uma exceção fatal do kernel.
+
+### Orientação de correção
+Uma resposta adequada deve nomear as estruturas técnicas, justificar cada transição e apresentar um contraexemplo. Compare sua solução com os exemplos e o código citado no laboratório; registre dúvidas em vez de declarar compreensão sem evidência.
+
+**Estado desta ampliação:** conteúdo editorial implementado; execução dos exemplos, teste com estudante iniciante e revisão independente **NOT_RUN**. As evidências históricas citadas no workbook original pertencem aos commits e ambientes ali identificados, não a esta alteração.
+
 ## 1. Fenômeno
 A CPU encontra uma instrução que não existe (`ud2`). Ela não pode "ignorar e seguir". Como ela transfere o controle para o kernel?
 
