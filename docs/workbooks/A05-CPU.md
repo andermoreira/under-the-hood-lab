@@ -1,5 +1,30 @@
 # A05 — A CPU Hack: de circuitos a instruções
 
+
+**Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F02–F05. Este capítulo pressupõe programação básica, não eletrônica.
+
+## Fundamento: interpretar uma instrução é controlar circuitos
+
+A CPU Hack recebe uma instrução de 16 bits. O bit mais significativo distingue a **instrução A** (começa com 0) da **instrução C** (começa com 1). A instrução A carrega um valor no registrador A; a instrução C escolhe cálculo, destinos e salto.
+
+**Analogia:** um formulário de entrega tem campos de “o que fazer”, “onde guardar” e “para onde ir depois”. **Limite:** a CPU não lê palavras; os campos binários acionam diretamente a ALU, os registradores e a lógica do PC.
+
+**Exemplo resolvido:**
+```asm
+@7
+D=A
+@5
+D=D+A
+```
+Depois de `@7`, A=7. `D=A` grava D=7. `@5` muda A para 5 sem mudar D. `D=D+A` produz D=12. A memória RAM não precisa ser escrita nesse exemplo.
+
+**Salto:** `@10` seguido de `0;JMP` carrega no PC o endereço 10. Já `D;JGT` só salta se o valor interpretado de D for maior que zero. Para D=0, não salta; para D=1, salta; para D=-1, não salta.
+
+**Experimento independente:** escreva uma tabela com A, D e PC após cada instrução do exemplo, antes de ler `CPU.hdl`. Compare a lógica de seleção de instrução e destino. Execute os testes oficiais apenas em ambiente com simulador configurado; o resultado de um modelo Python não comprova automaticamente o HDL.
+
+**Erros comuns:** supor que `@7` coloca 7 em D; confundir registrador A com a RAM apontada por A; interpretar `writeM` como uma RAM interna da CPU.
+
+
 ## Problema
 Como uma sequência de 16 bits decide se a CPU deve guardar um número, calcular, escrever na memória ou saltar?
 
