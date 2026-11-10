@@ -8,6 +8,12 @@ O processador não executa diretamente palavras como `while` ou `print`. Ele exe
 ## 2. Conceitos construídos passo a passo
 No computador Hack, `@21` é uma instrução A que carrega o valor 21 no registrador A. A codificação usa 16 bits: o primeiro bit é 0 e os outros 15 representam 21. Assim, `@21` vira `0000000000010101`. Isso é específico da ISA Hack, não de x86-64.
 
+## Analogia com o mundo real
+Assembly se parece com uma lista de instruções curtas para uma máquina especializada; o assembler é um tradutor que converte essas instruções para códigos que a máquina reconhece. O linker organiza partes produzidas separadamente, como a montagem de um manual com referências cruzadas.
+
+### Onde a analogia deixa de funcionar
+Tradução não implica que todas as arquiteturas entendam as mesmas instruções. Assembly não é uma linguagem universal e um linker não garante que o programa funcione quando executado.
+
 ## 3. Exemplo resolvido
 Um programa fonte pode passar por compilação, montagem (assembly) e ligação (linkedição). O linker resolve símbolos e organiza seções em um executável. No kernel, o carregador e o formato ELF também importam; `main` e `printf` não surgem automaticamente.
 
