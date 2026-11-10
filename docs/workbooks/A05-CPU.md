@@ -3,6 +3,22 @@
 
 **Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F02–F05. Este capítulo pressupõe programação básica, não eletrônica.
 
+## Mapa visual do conceito
+
+```mermaid
+flowchart TD
+ I[Instrução de 16 bits] --> T{bit 15}
+ T -->|zero| A[Carrega A]
+ T -->|um| C[Decodifica comp dest jump]
+ C --> ALU[ALU calcula]
+ ALU --> D[Destino e escrita]
+ ALU --> J[Condição de salto]
+ J --> PC[Atualiza PC]
+ A --> PC
+```
+
+**Leitura:** acompanhe as setas; o desenho abstrai detalhes elétricos e temporais.
+
 ## Fundamento: interpretar uma instrução é controlar circuitos
 
 A CPU Hack recebe uma instrução de 16 bits. O bit mais significativo distingue a **instrução A** (começa com 0) da **instrução C** (começa com 1). A instrução A carrega um valor no registrador A; a instrução C escolhe cálculo, destinos e salto.
