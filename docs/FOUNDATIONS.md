@@ -22,7 +22,7 @@
 | F07 | Como o computador começa a executar um kernel? | F04, F05 | B01–B04 |
 | F08 | O que um sistema operacional protege e fornece? | F06, F07 | B07–B12 |
 
-Comece por [F01](foundations/F01-BITS-BYTES.md), depois [F02](foundations/F02-LOGICA.md) e [A01](workbooks/A01.md). Os demais F03–F08 são **planejados, NOT_RUN**: a tabela não significa que já existam aulas completas.
+Comece por [F01](foundations/F01-BITS-BYTES.md), depois [F02](foundations/F02-LOGICA.md), [F03](foundations/F03-PORTAS-CIRCUITOS.md) e [A01](workbooks/A01.md). Continue por [F04](foundations/F04-ESTADO-CPU.md), [F05](foundations/F05-CODIGO-MAQUINA.md), [F06](foundations/F06-ENDERECOS-MEMORIA.md), [F07](foundations/F07-BOOT.md) e [F08](foundations/F08-SISTEMA-OPERACIONAL.md) conforme as dependências. F03–F08 possuem **versões introdutórias iniciais** com exemplos e exercícios, ainda sujeitas a revisão didática independente. **NOT_RUN** indica que seus experimentos e avaliações de aprendizagem não foram executados.
 
 ## Modelo de capítulo
 1. Objetivo observável e conhecimento prévio.
