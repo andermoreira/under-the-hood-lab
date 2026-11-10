@@ -221,41 +221,57 @@ int paging_unmap_test_page(void) {
 /* B08: map one 4 KiB user-accessible page at `virt` in the active address
  * space. Allocates a fresh leaf frame and any missing intermediate tables,
  * all with the USER bit set (every level must permit ring-3 access). Existing
- * intermediate entries have USER OR-ed in so a kernel-only parent does not
- * block the new user page. Returns the HHDM pointer to the leaf frame (for the
- * kernel to fill in), or NULL on failure. No rollback: intended for one-shot
- * setup of a single user task, not repeated mapping. */
+ * supervisor-only intermediate entries are rejected, not promoted. Returns
+ * the HHDM pointer to the leaf frame, or NULL after rolling back new tables. */
 void *paging_map_user_page(uint64_t virt) {
-    if (!direct_map || (virt & (PAGE_SIZE - 1))) return NULL;
+    /* Only canonical lower-half user addresses, excluding the null guard page.
+     * Never modify a pre-existing supervisor-only page-table hierarchy. */
+    if (!direct_map || (virt & (PAGE_SIZE - 1)) ||
+        virt < PAGE_SIZE || virt >= 0x0000800000000000ULL) return NULL;
     uint64_t cr3;
     __asm__ volatile ("mov %%cr3, %0" : "=r"(cr3));
     uint64_t *table = table_at(cr3 & ADDRESS_MASK);
+    uint64_t *parents[3] = {0};
+    uint64_t frames[3] = {0};
+    unsigned indices[3] = {0};
+    unsigned created = 0;
     const unsigned shifts[3] = {39, 30, 21};
     for (unsigned level = 0; level < 3; ++level) {
         unsigned index = (unsigned)((virt >> shifts[level]) & 511);
         uint64_t entry = table[index];
         if (entry & PRESENT) {
-            if (entry & HUGE) return NULL;
-            table[index] = entry | USER;   /* allow ring-3 descent */
+            if ((entry & HUGE) || !(entry & USER)) goto rollback;
             table = table_at(entry & ADDRESS_MASK);
             continue;
         }
         uint64_t frame = pmm_alloc();
-        if (frame == UINT64_MAX) return NULL;
+        if (frame == UINT64_MAX) goto rollback;
         uint64_t *child = table_at(frame);
         zero_page(child);
+        parents[created] = table;
+        indices[created] = index;
+        frames[created] = frame;
+        ++created;
         table[index] = frame | PRESENT | WRITABLE | USER;
         table = child;
     }
     unsigned leaf = (unsigned)((virt >> 12) & 511);
-    if (table[leaf] & PRESENT) return NULL;
+    if (table[leaf] & PRESENT) goto rollback;
     uint64_t frame = pmm_alloc();
-    if (frame == UINT64_MAX) return NULL;
+    if (frame == UINT64_MAX) goto rollback;
     uint64_t *page = table_at(frame);
     zero_page(page);
     table[leaf] = frame | PRESENT | WRITABLE | USER;
     __asm__ volatile ("invlpg (%0)" : : "r"((uintptr_t)virt) : "memory");
     return page;
+rollback:
+    while (created) {
+        --created;
+        parents[created][indices[created]] = 0;
+        __asm__ volatile ("invlpg (%0)" : : "r"((uintptr_t)virt) : "memory");
+        pmm_free(frames[created]);
+    }
+    return NULL;
 }
 
 /* B11: release a user page previously mapped by paging_map_user_page. Clears
