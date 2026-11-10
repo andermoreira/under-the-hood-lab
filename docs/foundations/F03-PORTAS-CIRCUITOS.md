@@ -2,6 +2,18 @@
 
 **Público:** sabe programar, não conhece eletrônica. **Pré-requisito:** [F02-LOGICA ](F02-LOGICA.md). **Tempo sugerido:** 60–100 minutos.
 
+## Mapa visual do conceito
+
+```mermaid
+flowchart LR
+ A["Sensor A"] --> N["AND"]
+ B["Sensor B"] --> I["NOT"]
+ I --> N
+ N --> S["Aviso: A e não B"]
+```
+
+**Como ler:** siga as setas para identificar entradas, transformações e saídas. Este é um modelo didático, não um diagrama elétrico nem uma prova de temporização.
+
 ## 1. Problema concreto
 Uma porta recebe sinais binários e calcula uma saída. Um circuito combinacional conecta portas; suas saídas dependem das entradas atuais, não de um histórico guardado.
 
