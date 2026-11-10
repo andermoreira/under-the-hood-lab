@@ -3,6 +3,20 @@
 
 **Pré-requisitos:** [Trilha 0](../FOUNDATIONS.md), especialmente F02–F05. Este capítulo pressupõe programação básica, não eletrônica.
 
+## Mapa visual do conceito
+
+```mermaid
+flowchart TD
+ R{reset?} -->|sim| Z[PC recebe zero]
+ R -->|não| L{load?}
+ L -->|sim| I[PC recebe in]
+ L -->|não| C{inc?}
+ C -->|sim| P[PC mais um]
+ C -->|não| H[PC mantém valor]
+```
+
+**Leitura:** acompanhe as setas; o desenho abstrai detalhes elétricos e temporais.
+
 ## Fundamento: um endereço que muda a cada instrução
 
 O **contador de programa** (PC) é um registrador especial que aponta para a instrução a ser buscada. Na CPU Hack, a próxima atualização do PC pode conservar o valor, incrementá-lo, carregar um endereço ou zerá-lo. A prioridade contratual é `reset > load > inc > hold`.
