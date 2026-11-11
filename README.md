@@ -1,5 +1,7 @@
 # Under the Hood Lab
 
+> **Qualidade pedagógica:** consulte o [contrato de evidências](docs/QUALITY-CONTRACT.md) para separar execução, precisão conceitual, revisão independente e aprovação. O contrato está em adoção piloto; não implica validação automática dos laboratórios.
+
 Laboratório educacional do bit ao sistema operacional.
 
 **Trilha A:** NAND → portas lógicas → ALU → memória → CPU Hack → assembler.
