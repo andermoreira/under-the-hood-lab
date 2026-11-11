@@ -1,0 +1,21 @@
+name: evidence-manifest-gate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate evidence schema and negative tests
+        run: python3 -m unittest discover -s scripts -p 'test_validate_evidence.py' -v
+      - name: Validate evidence manifests
+        run: python3 scripts/validate_evidence.py evidence
