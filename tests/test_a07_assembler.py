@@ -47,6 +47,11 @@ class HackAssemblerTests(unittest.TestCase):
         with self.assertRaisesRegex(AssemblyError, "SCREEN"):
             assemble(source)
 
-    def test_label_beyond_rom_limit(self):\n        source = "@0\\n" * 32768 + "(TOO_FAR)\\n"\n        with self.assertRaisesRegex(AssemblyError, "label address"):\n            assemble(source)\n\n    def test_line_numbers(self):
+    def test_label_beyond_rom_limit(self):
+        source = "@0\n" * 32768 + "(TOO_FAR)\n"
+        with self.assertRaisesRegex(AssemblyError, "label address"):
+            assemble(source)
+
+    def test_line_numbers(self):
         with self.assertRaisesRegex(AssemblyError, "line 3"):
             assemble("// comment\n@1\nD=Q")

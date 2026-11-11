@@ -36,7 +36,9 @@ def assemble(source: str) -> str:
                 raise AssemblyError(f"line {number}: invalid label {line}")
             if label in symbols:
                 raise AssemblyError(f"line {number}: duplicate or reserved label {label}")
-            if rom > 32767:\n                raise AssemblyError(f"line {number}: label address outside 0..32767")\n            symbols[label] = rom
+            if rom > 32767:
+                raise AssemblyError(f"line {number}: label address outside 0..32767")
+            symbols[label] = rom
         else:
             instructions.append((number, line))
             rom += 1
