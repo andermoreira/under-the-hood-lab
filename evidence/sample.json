@@ -1,0 +1,15 @@
+{
+  "experiment_id": "sample-001",
+  "repository": "andermoreira/under-the-hood-lab",
+  "commit": null,
+  "platform": null,
+  "command": "python3 --version",
+  "exit_code": null,
+  "expected": "Python version",
+  "observed": null,
+  "state": "NOT_RUN",
+  "reviewer": null,
+  "limitations": [
+    "Sample only; command has not been executed"
+  ]
+}
