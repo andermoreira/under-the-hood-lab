@@ -8,7 +8,10 @@ test-hdl-official:
 test-assembler:
 	python3 tools/hack_assembler.py hardware/nand2tetris/programs/FillRAM.asm -o /tmp/under-the-hood-FillRAM.hack
 	cmp /tmp/under-the-hood-FillRAM.hack hardware/nand2tetris/programs/FillRAM.hack
-verify: test test-hdl-offline test-assembler
+test-low-level:
+	$(MAKE) -C labs/low-level/C01 test
+
+verify: test test-hdl-offline test-assembler test-low-level
 
 test-kernel-build:
 	bash scripts/build-kernel.sh
