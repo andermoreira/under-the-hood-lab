@@ -1,6 +1,6 @@
 import unittest
 from b09_elf import inspect_header,InvalidELF
-VALID=b"\\x7fELF"+bytes([2,1,1])+bytes(9)
+VALID=b"\x7fELF"+bytes([2,1,1])+bytes(9)
 class Tests(unittest.TestCase):
     def test_valid_ident(self): self.assertEqual(inspect_header(VALID)["class"],"ELF64")
     def test_real_elf_magic_bytes(self):
