@@ -86,6 +86,7 @@ jobs:
           B05_DISASSEMBLE: "1"
         run: |
           make test-kernel-boot
+          python3 tools/verify_qemu_serial.py build/kernel/serial.log --output build/kernel/serial-evidence.json
           B04_EXPECT_KEYBOARD=1 bash scripts/test-kernel-boot.sh
           KERNEL_OUT="$PWD/build/kernel-ud2" KERNEL_CFLAGS="-DB03_TRIGGER_UD2" bash scripts/build-kernel.sh
           KERNEL_OUT="$PWD/build/kernel-ud2" B03_EXPECT_UD2=1 bash scripts/test-kernel-boot.sh
@@ -97,6 +98,7 @@ jobs:
           name: b02-qemu-boot-evidence
           path: |
             build/kernel/serial.log
+            build/kernel/serial-evidence.json
             build/kernel/qemu.log
             build/kernel/qemu-debug.log
             build/kernel/kernel.elf
