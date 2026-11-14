@@ -59,6 +59,7 @@ write_next:
     jle syscall_error         # includes zero-progress write
     sub %rax, %r14
     add %rax, %r15
+    test %r14, %r14
     jnz write_next
     jmp read_next
 
