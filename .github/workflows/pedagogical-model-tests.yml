@@ -1,0 +1,28 @@
+name: pedagogical-model-tests
+
+on:
+  push:
+    paths:
+      - "docs/pedagogy/examples/**"
+      - "docs/pedagogy/run_model_tests.py"
+      - ".github/workflows/pedagogical-model-tests.yml"
+  pull_request:
+    paths:
+      - "docs/pedagogy/examples/**"
+      - "docs/pedagogy/run_model_tests.py"
+      - ".github/workflows/pedagogical-model-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-models:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python version
+        run: python3 --version
+      - name: Run all pedagogical models
+        run: python3 docs/pedagogy/run_model_tests.py
