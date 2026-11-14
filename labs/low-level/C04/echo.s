@@ -5,6 +5,7 @@ newline: .ascii "\n"
 .global _start
 _start:
     mov (%rsp), %r12
+    dec %r12                 # argc includes argv[0]
     lea 16(%rsp), %r13
     xor %r14, %r14
 loop_args:
