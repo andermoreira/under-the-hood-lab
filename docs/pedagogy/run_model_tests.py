@@ -4,7 +4,7 @@ import pathlib
 import subprocess
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parents[3]
+ROOT = pathlib.Path(__file__).resolve().parents[2]
 EXAMPLES = ROOT / "docs" / "pedagogy" / "examples"
 
 def main():
