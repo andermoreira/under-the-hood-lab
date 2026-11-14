@@ -8,7 +8,7 @@ Laboratório educacional do bit ao sistema operacional.
 
 **Trilha B:** boot x86-64 → kernel → interrupções → memória virtual → scheduler → ring 3 e syscalls → carregador ELF → disco e filesystem → shell.
 
-As trilhas são independentes: o kernel x86-64 não roda na CPU Hack.
+**Trilha C (nova, em desenvolvimento):** Assembly x86-64 no Linux → ELF → syscalls → ABI → utilitários → memória e depuração. [Roteiro e C01](docs/track-c/README.md). Apenas C01 está implementado; validação de execução pendente.\n\nAs trilhas são independentes: o kernel x86-64 não roda na CPU Hack.
 
 A trilha B atinge a "Definição de utilizável" do roadmap: inicia no QEMU, recebe comandos pelo shell, executa dois programas próprios em modo usuário, lê/grava arquivos persistentes e contém falhas de programas sem derrubar o kernel.
 
