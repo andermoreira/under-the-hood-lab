@@ -1,0 +1,22 @@
+name: Track C06 memory
+on:
+  push:
+    paths:
+      - 'labs/low-level/C06/**'
+      - 'docs/track-c/C06.md'
+      - '.github/workflows/track-c-c06.yml'
+  pull_request:
+    paths:
+      - 'labs/low-level/C06/**'
+      - 'docs/track-c/C06.md'
+      - '.github/workflows/track-c-c06.yml'
+permissions:
+  contents: read
+jobs:
+  c06:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: make -C labs/low-level/C06 test
+      - run: make -C labs/low-level/C06 inspect
