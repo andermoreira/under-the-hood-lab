@@ -24,7 +24,9 @@ jobs:
         run: |
           make -C labs/low-level/C01 test
           make -C labs/low-level/C02 test
+          make -C labs/low-level/C03 test
       - name: Inspect ELF files
         run: |
           make -C labs/low-level/C01 inspect
           make -C labs/low-level/C02 inspect
+          make -C labs/low-level/C03 inspect
