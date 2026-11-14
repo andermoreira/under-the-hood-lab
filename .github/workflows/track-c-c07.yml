@@ -1,0 +1,22 @@
+name: Track C07 flags
+on:
+  push:
+    paths:
+      - 'labs/low-level/C07/**'
+      - 'docs/track-c/C07.md'
+      - '.github/workflows/track-c-c07.yml'
+  pull_request:
+    paths:
+      - 'labs/low-level/C07/**'
+      - 'docs/track-c/C07.md'
+      - '.github/workflows/track-c-c07.yml'
+permissions:
+  contents: read
+jobs:
+  c07:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: make -C labs/low-level/C07 test
+      - run: make -C labs/low-level/C07 inspect
