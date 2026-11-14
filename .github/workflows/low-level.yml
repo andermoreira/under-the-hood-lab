@@ -1,0 +1,28 @@
+name: Low-level labs
+on:
+  push:
+    paths:
+      - 'labs/low-level/**'
+      - 'docs/track-c/**'
+      - 'Makefile'
+      - '.github/workflows/low-level.yml'
+  pull_request:
+    paths:
+      - 'labs/low-level/**'
+      - 'docs/track-c/**'
+      - 'Makefile'
+      - '.github/workflows/low-level.yml'
+permissions:
+  contents: read
+jobs:
+  low-level:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test C01/C02
+        run: make test-low-level
+      - name: Inspect ELF files
+        run: |
+          make -C labs/low-level/C01 inspect
+          make -C labs/low-level/C02 inspect
