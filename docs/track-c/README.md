@@ -19,7 +19,7 @@ Linux x86-64, GNU binutils (as, ld, objdump, readelf), make, Python 3; gdb e str
 | C01 | Instruções, registradores e write/exit | saída exata, código de retorno, disassembly | Implementado; execução local não verificada |
 | C02 | ELF: seções, segmentos, símbolos, entry point | readelf/objdump e mapa anotado | Implementado; CI pendente |
 | C03 | Syscalls: read, write, openat e erros | strace e teste de falha | Implementado; CI pendente |
-| C04 | echo, cat e wc simplificados | comparação com casos de referência | NOT_RUN |
+| C04 | echo, cat e wc simplificados | comparação com casos de referência | Implementado; CI pendente |
 | C05 | ABI System V AMD64 e C/Assembly | chamada cruzada, stack alinhada | NOT_RUN |
 | C06 | Stack, heap, mmap e memória virtual | mapas de memória e hipóteses | NOT_RUN |
 | C07 | Flags, aritmética, bitwise e overflow | testes de fronteira | NOT_RUN |
@@ -41,7 +41,7 @@ Linux x86-64, GNU binutils (as, ld, objdump, readelf), make, Python 3; gdb e str
 
 ## C01 — primeiro laboratório
 
-Veja [C01](C01.md), [C02](C02.md) e [C03](C03.md). Execute `make -C labs/low-level/C01 test` em Linux x86-64. O teste verifica o resultado funcional e a presença de instruções; não certifica aprendizagem, segurança nem equivalência ao kernel próprio.
+Veja [C01](C01.md), [C02](C02.md) e [C03](C03.md) e [C04](C04.md). Execute `make -C labs/low-level/C01 test` em Linux x86-64. O teste verifica o resultado funcional e a presença de instruções; não certifica aprendizagem, segurança nem equivalência ao kernel próprio.
 
 ## Ponte com a Trilha B
 
