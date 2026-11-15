@@ -33,6 +33,15 @@ jobs:
         run: make -C labs/low-level/C08 test
       - name: C09 real SIGABRT lab
         run: make -C labs/low-level/C09 test
+      - name: C09 real GDB backtrace
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gdb
+          ulimit -c 0
+          gdb -q -batch -ex "set pagination off" -ex "run abort" -ex "bt" --args labs/low-level/C09/crash abort > c09-gdb.log 2>&1
+          grep -F "C09_BEFORE_ABORT" c09-gdb.log
+          grep -E "SIGABRT|Program received signal" c09-gdb.log
+          grep -E "crash.c:[0-9]+" c09-gdb.log
       - name: C10 real procfs lab
         run: make -C labs/low-level/C10 test
       - name: C11 static and dynamic ELF lab
@@ -51,5 +60,7 @@ jobs:
         if: always()
         with:
           name: track-c-real-linux-evidence
-          path: build/track-c/
+          path: |
+            build/track-c/
+            c09-gdb.log
           if-no-files-found: warn
