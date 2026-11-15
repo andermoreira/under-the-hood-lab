@@ -33,7 +33,12 @@ p.write_text(s)
 PY
 done
 cd "$STAGE"
-for test in Not And Or Xor Mux HalfAdder FullAdder Add16 Inc16 ALU Bit Register RAM8 RAM64 PC CPU Computer ComputerSum; do
+for test_file in "$STAGE"/*.tst; do
+  test="$(basename "$test_file" .tst)"
+  if [[ ! -f "$STAGE/$test.cmp" ]]; then
+    echo "FAIL: $test.tst has no matching .cmp" >&2
+    exit 1
+  fi
   echo "Running $test.tst"
   rm -f "$test.out"
   if [[ "$test" == "Computer" ]]; then sed -n '1,22p' "$test.tst"; fi
@@ -49,4 +54,4 @@ for test in Not And Or Xor Mux HalfAdder FullAdder Add16 Inc16 ALU Bit Register 
   python3 "$ROOT/tools/check_cmp.py" "$test.cmp" "$test.out"
   cp "$test.out" "$TESTS/$test.out"
 done
-echo "PASS: official simulator produced matching output for all listed circuits"
+echo "PASS: official simulator produced matching output for all discovered circuits"
