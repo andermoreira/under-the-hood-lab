@@ -22,6 +22,12 @@ class LearnValidatorTests(unittest.TestCase):
             self.assertIn(f"section_{number}_missing_or_placeholder", findings)
         self.assertIn("identity_or_provenance_missing", findings)
 
+    def test_blank_rubric_justification_is_incomplete(self):
+        base = (ROOT / "docs/journal/B05.md").read_text()
+        base = base.replace("| Prever | ☐ | <...> |", "| Prever | 2 |  |")
+        result = check(base)
+        self.assertIn("rubric_incomplete_prever", result["findings"])
+
     def test_missing_review_rows_fail(self):
         result = check("## 3. Prediction\nA\n## 4. Observation\nB\n## 8. Rubric\n## 9. Review\n")
         self.assertIn("review_rows_missing", result["findings"])
