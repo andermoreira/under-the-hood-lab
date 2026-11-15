@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "claim": "educational comparison, not Linux binary compatibility",
+  "comparisons": [
+    {
+      "id": "syscall",
+      "linux": "Linux x86-64 syscall ABI",
+      "kernel": "B08",
+      "status": "PARTIAL",
+      "gap": "syscall numbers, argument semantics, errno, process model"
+    },
+    {
+      "id": "elf",
+      "linux": "ELF64 PT_LOAD and interpreter",
+      "kernel": "B09",
+      "status": "PARTIAL",
+      "gap": "PT_INTERP, dynamic linker, relocation, shared libraries"
+    },
+    {
+      "id": "storage",
+      "linux": "VFS and POSIX file descriptors",
+      "kernel": "B10",
+      "status": "PARTIAL",
+      "gap": "POSIX filesystem API, permissions, directories"
+    },
+    {
+      "id": "fault",
+      "linux": "signal delivery and process isolation",
+      "kernel": "B12",
+      "status": "PARTIAL",
+      "gap": "Linux signal semantics and process lifecycle"
+    },
+    {
+      "id": "procfs",
+      "linux": "/proc status and maps",
+      "kernel": "B12",
+      "status": "MISSING",
+      "gap": "procfs and introspection API"
+    }
+  ]
+}
