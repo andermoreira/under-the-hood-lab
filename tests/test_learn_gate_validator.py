@@ -15,6 +15,13 @@ class LearnValidatorTests(unittest.TestCase):
         self.assertIn("rubric_incomplete_prever", result["findings"])
         self.assertIn("review_incomplete_+30_dias", result["findings"])
 
+    def test_required_sections_and_provenance(self):
+        base = (ROOT / "docs/journal/B05.md").read_text()
+        findings = check(base)["findings"]
+        for number in (1, 2, 5, 6, 7, 10):
+            self.assertIn(f"section_{number}_missing_or_placeholder", findings)
+        self.assertIn("identity_or_provenance_missing", findings)
+
     def test_missing_review_rows_fail(self):
         result = check("## 3. Prediction\nA\n## 4. Observation\nB\n## 8. Rubric\n## 9. Review\n")
         self.assertIn("review_rows_missing", result["findings"])
