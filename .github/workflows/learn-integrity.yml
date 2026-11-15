@@ -1,0 +1,41 @@
+name: learn-integrity
+on:
+  push:
+    paths:
+      - "docs/journal/**"
+      - "tools/validate_learn_journal.py"
+      - "tests/test_learn_gate_validator.py"
+      - ".github/workflows/learn-integrity.yml"
+  pull_request:
+    paths:
+      - "docs/journal/**"
+      - "tools/validate_learn_journal.py"
+      - "tests/test_learn_gate_validator.py"
+      - ".github/workflows/learn-integrity.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  structural-integrity:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate checker and negative controls
+        run: python3 -m unittest discover -s tests -p 'test_learn_gate_validator.py' -v
+      - name: Confirm untouched B05 journal is incomplete
+        run: |
+          set +e
+          python3 tools/validate_learn_journal.py docs/journal/B05.md --output learn-b05-report.json
+          code=$?
+          set -e
+          test "$code" -eq 1
+          python3 -c 'import json; r=json.load(open("learn-b05-report.json")); assert r["status"]=="INCOMPLETE", r'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: learn-static-integrity-not-learning-proof
+          path: learn-b05-report.json
+          if-no-files-found: warn
