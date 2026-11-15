@@ -26,6 +26,14 @@ def check(text):
         findings.append("observation_missing_or_placeholder")
     if "Commit em que foi observado: <hash>" in observation:
         findings.append("observed_commit_missing")
+    for number in (1, 2, 5, 6, 7, 10):
+        body = section(text, number)
+        if not body.strip() or PLACEHOLDER.search(body):
+            findings.append(f"section_{number}_missing_or_placeholder")
+    for token in ("Estudante: <nome>", "Data de início: <AAAA-MM-DD>", "Commit base: <hash"):
+        if token in text:
+            findings.append("identity_or_provenance_missing")
+            break
     rubric = section(text, 8)
     for dimension in DIMENSIONS:
         line = next((line for line in rubric.splitlines() if re.match(r"^\|\s*" + dimension + r"\s*\|", line)), "")
