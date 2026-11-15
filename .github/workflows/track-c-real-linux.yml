@@ -3,6 +3,10 @@ on:
   push:
     paths:
       - "labs/low-level/C08/**"
+      - "labs/low-level/C09/**"
+      - "labs/low-level/C10/**"
+      - "labs/low-level/C09/**"
+      - "labs/low-level/C10/**"
       - "labs/low-level/C11/**"
       - ".github/workflows/track-c-real-linux.yml"
   pull_request:
@@ -27,6 +31,10 @@ jobs:
           python3 --version
       - name: C08 real syscall lab
         run: make -C labs/low-level/C08 test
+      - name: C09 real SIGABRT lab
+        run: make -C labs/low-level/C09 test
+      - name: C10 real procfs lab
+        run: make -C labs/low-level/C10 test
       - name: C11 static and dynamic ELF lab
         run: make -C labs/low-level/C11 test
       - name: Capture ELF metadata
