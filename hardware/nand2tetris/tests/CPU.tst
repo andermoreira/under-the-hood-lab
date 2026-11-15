@@ -9,3 +9,12 @@ set instruction %B0000000000000101, set inM 0, set reset 0, tick, tock, output;
 set instruction %B1110000010010000, set inM 0, set reset 0, tick, tock, output;
 set instruction %B0000000000011001, set inM 0, set reset 0, tick, tock, output;
 set instruction %B1110101010000111, set inM 0, set reset 0, tick, tock, output;
+
+// Reset, memory write, external inM read, taken and untaken conditional jumps.
+set instruction %B0000000000000011, set inM 0, set reset 1, tick, tock, output;
+set instruction %B0000000000001001, set inM 0, set reset 0, tick, tock, output;
+set instruction %B1110001100001000, set inM 0, set reset 0, tick, tock, output;
+set instruction %B1111110000010000, set inM 21, set reset 0, tick, tock, output;
+set instruction %B0000000000001100, set inM 0, set reset 0, tick, tock, output;
+set instruction %B1110001100000001, set inM 0, set reset 0, tick, tock, output;
+set instruction %B1110001100000100, set inM 0, set reset 0, tick, tock, output;
