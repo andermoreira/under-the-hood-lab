@@ -5,13 +5,13 @@ on:
       - "labs/low-level/C08/**"
       - "labs/low-level/C09/**"
       - "labs/low-level/C10/**"
-      - "labs/low-level/C09/**"
-      - "labs/low-level/C10/**"
       - "labs/low-level/C11/**"
       - ".github/workflows/track-c-real-linux.yml"
   pull_request:
     paths:
       - "labs/low-level/C08/**"
+      - "labs/low-level/C09/**"
+      - "labs/low-level/C10/**"
       - "labs/low-level/C11/**"
       - ".github/workflows/track-c-real-linux.yml"
   workflow_dispatch:
