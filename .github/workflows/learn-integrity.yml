@@ -5,6 +5,7 @@ on:
       - "docs/journal/**"
       - "tools/validate_learn_journal.py"
       - "tests/test_learn_gate_validator.py"
+      - "tests/fixtures/learn-incomplete.md"
       - ".github/workflows/learn-integrity.yml"
   pull_request:
     paths:
@@ -25,14 +26,14 @@ jobs:
           python-version: "3.12"
       - name: Validate checker and negative controls
         run: python3 -m unittest discover -s tests -p 'test_learn_gate_validator.py' -v
-      - name: Confirm untouched B05 journal is incomplete
+      - name: Confirm immutable incomplete fixture is rejected
         run: |
           set +e
-          python3 tools/validate_learn_journal.py docs/journal/B05.md --output learn-b05-report.json
+          python3 tools/validate_learn_journal.py tests/fixtures/learn-incomplete.md --output learn-fixture-report.json
           code=$?
           set -e
           test "$code" -eq 1
-          python3 -c 'import json; r=json.load(open("learn-b05-report.json")); assert r["status"]=="INCOMPLETE", r'
+          python3 -c 'import json; r=json.load(open("learn-fixture-report.json")); assert r["status"]=="INCOMPLETE", r'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
