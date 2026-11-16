@@ -38,7 +38,7 @@ def check(text):
     for dimension in DIMENSIONS:
         line = next((line for line in rubric.splitlines() if re.match(r"^\|\s*" + dimension + r"\s*\|", line)), "")
         cells = [x.strip() for x in line.strip("|").split("|")]
-        if len(cells) < 3 or cells[1] not in ("0", "1", "2", "3") or PLACEHOLDER.search(cells[2]):
+        if len(cells) < 3 or cells[1] not in ("0", "1", "2", "3") or not cells[2] or cells[2] in ("—", "-") or PLACEHOLDER.search(cells[2]):
             findings.append("rubric_incomplete_" + dimension.lower())
         elif int(cells[1]) < 2:
             findings.append("rubric_below_threshold_" + dimension.lower())
